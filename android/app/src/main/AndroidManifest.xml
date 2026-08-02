@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="programacion_movil_proyecto"
+        android:label="Inventario Fácil"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
