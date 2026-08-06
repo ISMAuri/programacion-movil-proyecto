@@ -8,6 +8,11 @@ class AppTextStyles {
     fontWeight: FontWeight.bold,
     color: Colors.white,
   );
+    static const TextStyle screenTitle2 = TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+  );
 
   // titulos por seccion
   static const TextStyle sectionTitle = TextStyle(
