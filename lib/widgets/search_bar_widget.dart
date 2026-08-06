@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
-import '../screens/listado_productos_screen.dart';
 
 class SearchBarWidget extends StatelessWidget {
   // final Color color;
@@ -36,12 +35,7 @@ class SearchBarWidget extends StatelessWidget {
               return ListTile(
                 title: Text('Producto ${index + 1}'),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ListadoProductosScreen(),
-                    ),
-                  );
+                  null;
                 },
               );
             },
