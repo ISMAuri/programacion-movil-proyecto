@@ -12,138 +12,136 @@ class LoginScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
 
       body: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        alignment: Alignment.center,
 
-          child: Card(
-            elevation: 8,
-            shadowColor: Colors.black26,
-            color: AppColors.white,
+        child: Card(
+          shadowColor: Colors.black26,
+          color: AppColors.white,
 
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
 
-            child: Padding(
-              padding: const EdgeInsets.all(28),
+          child: Padding(
+            padding: const EdgeInsets.all(25),
 
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Logo / Icono
-                  Container(
-                    width: 75,
-                    height: 75,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icono
+                Container(
+                  width: 75,
+                  height: 75,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
 
-                    child: Icon(
-                      Icons.inventory_2_outlined,
-                      size: 40,
+                  child: Icon(
+                    Icons.inventory_2_outlined,
+                    size: 40,
+                    color: AppColors.primary,
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                const Text(
+                  "Inventario Fácil",
+                  style: AppTextStyles.screenTitle2,
+                ),
+
+                const SizedBox(height: 8),
+
+                Text(
+                  "Inicia sesión para continuar",
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
+                ),
+
+                const SizedBox(height: 30),
+
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: "Usuario",
+                    prefixIcon: Icon(
+                      Icons.person_outline,
                       color: AppColors.primary,
                     ),
+
+                    filled: true,
+                    fillColor: AppColors.background,
+
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
+                ),
 
-                  const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-                  const Text(
-                    "Inventario Fácil",
-                    style: AppTextStyles.screenTitle,
+                TextField(
+                  obscureText: true,
+
+                  decoration: InputDecoration(
+                    labelText: "Contraseña",
+
+                    prefixIcon: Icon(
+                      Icons.lock_outline,
+                      color: AppColors.primary,
+                    ),
+
+                    filled: true,
+                    fillColor: AppColors.background,
+
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
+                ),
 
-                  const SizedBox(height: 8),
+                const SizedBox(height: 25),
 
-                  Text(
-                    "Inicia sesión para continuar",
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
-                  ),
+                SizedBox(
+                  width: double.infinity,
 
-                  const SizedBox(height: 30),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
 
-                  TextField(
-                    decoration: InputDecoration(
-                      labelText: "Usuario",
-                      prefixIcon: Icon(
-                        Icons.person_outline,
-                        color: AppColors.primary,
-                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 15),
 
-                      filled: true,
-                      fillColor: AppColors.background,
-
-                      border: OutlineInputBorder(
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
                       ),
                     ),
-                  ),
 
-                  const SizedBox(height: 16),
-
-                  TextField(
-                    obscureText: true,
-
-                    decoration: InputDecoration(
-                      labelText: "Contraseña",
-
-                      prefixIcon: Icon(
-                        Icons.lock_outline,
-                        color: AppColors.primary,
-                      ),
-
-                      filled: true,
-                      fillColor: AppColors.background,
-
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  SizedBox(
-                    width: double.infinity,
-
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomeScreen(),
                         ),
-                      ),
+                      );
+                    },
 
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HomeScreen(),
-                          ),
-                        );
-                      },
-
-                      child: const Text(
-                        "Ingresar",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    child: const Text(
+                      "Ingresar",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
-      
+      ),
     );
   }
 }
