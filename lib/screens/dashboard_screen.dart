@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
-import '../widgets/card.dart';
+import '../widgets/estadistica_card.dart';
+import '../widgets/acceso_rapido_card.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -10,44 +11,84 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Container(
-        color: AppColors.background,
-        width: double.infinity,
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("¡Hola, Usuario!", style: AppTextStyles.sectionTitle),
-
+            SizedBox(height: 4),
             Text(
               "Aquí tienes un resumen de tu inventario.",
               style: AppTextStyles.subtitle,
-            ),
+            ),SizedBox(height: 15),
 
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
+              childAspectRatio: 1.2,
               children: [
-                CustomCard(),
-                CustomCard(),
-                CustomCard(),
-                CustomCard(),
+                EstadisticaCard(
+                  color: AppColors.primary,
+                  icon: Icons.inventory_2_outlined,
+                  title: "Total de Productos",
+                  value: "150",
+                ),
+                EstadisticaCard(
+                  color: AppColors.success,
+                  icon: Icons.check_circle_outlined,
+                  title: "Productos Vendidos",
+                  value: "120",
+                ),
+                EstadisticaCard(
+                  color: AppColors.warning,
+                  icon: Icons.warning_amber_outlined,
+                  title: "Productos en Stock",
+                  value: "30",
+                ),
+                EstadisticaCard(
+                  color: AppColors.error,
+                  icon: Icons.error_outline,
+                  title: "Productos Agotados",
+                  value: "5",
+                ),
               ],
             ),
 
             SizedBox(height: 20),
-            Text("Accesos rápidas", style: AppTextStyles.sectionTitle),
-
+            Text("Accesos rápidos", style: AppTextStyles.sectionTitle),
+            SizedBox(height: 4),
+            Text(
+              "Algunas funciones comunes.",
+              style: AppTextStyles.subtitle,
+            ),
+            SizedBox(height: 15),
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               childAspectRatio: 1.5,
               crossAxisCount: 2,
               children: [
-                CustomCard(),
-                CustomCard(),
-                CustomCard(),
-                CustomCard(),
+                AccesoRapidoCard(
+                  color: AppColors.primary,
+                  icon: Icons.inventory_2_outlined,
+                  title: "Administrar Productos",
+                ),
+                AccesoRapidoCard(
+                  color: AppColors.primary,
+                  icon: Icons.point_of_sale_outlined,
+                  title: "Registrar Ventas",
+                ),
+                AccesoRapidoCard(
+                  color: AppColors.warning,
+                  icon: Icons.history_outlined,
+                  title: "Ver Movimientos",
+                ),
+                AccesoRapidoCard(
+                  color: AppColors.secondary,
+                  icon: Icons.people_outline,
+                  title: "Clientes",
+                ),
               ],
             ),
           ],
