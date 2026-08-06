@@ -3,7 +3,6 @@ import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 import 'dashboard_screen.dart';
 import 'login_screen.dart';
-import '../screens/listado_productos_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,7 +15,6 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   final List<Widget> _screens = [
     const DashboardScreen(),
-    const Center(child: Text("Inventario")),
     const Center(child: Text("Configuración")),
   ];
 
@@ -34,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       drawer: Menu(),
+      backgroundColor: AppColors.background,
 
       // contenido de la pantalla de inicio
       body: _screens[_selectedIndex],
@@ -52,10 +51,6 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppColors.white,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.inventory),
-            label: 'Inventario',
-          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Configuración',
@@ -117,7 +112,7 @@ class Menu extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.shopping_cart),
+            leading: const Icon(Icons.people),
             title: const Text('Clientes'),
             onTap: () {
               null;
@@ -131,7 +126,7 @@ class Menu extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.people),
+            leading: const Icon(Icons.manage_accounts),
             title: const Text('Usuarios'),
             onTap: () {
               null;
