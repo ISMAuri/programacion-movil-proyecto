@@ -68,7 +68,7 @@ class SearchBarWidget extends StatelessWidget {
                 title: "Leche Entera 1L",
                 category: "Lácteos",
                 price: "L. 60.59",
-                stock: "26",
+                stock: 26,
               ),
               // arroz
               VistaProductoCard(
@@ -76,28 +76,28 @@ class SearchBarWidget extends StatelessWidget {
                 title: "Arroz 2 lbs",
                 category: "Cereales",
                 price: "L. 30.00",
-                stock: "52",
+                stock: 52,
               ),
               VistaProductoCard(
                 icon: Icons.egg_outlined,
                 title: "Huevos Docena",
                 category: "Proteínas",
                 price: "L. 45.00",
-                stock: "5",
+                stock: 5
               ),
               VistaProductoCard(
                 icon: Icons.wine_bar_outlined,
                 title: "Vino Tinto 750ml",
                 category: "Bebidas",
                 price: "L. 120.00",
-                stock: "9",
+                stock: 9,
               ),
               VistaProductoCard(
                 icon: Icons.cookie_outlined,
                 title: "Galletas de Chocolate Pack de 6",
                 category: "Postres",
                 price: "L. 35.00",
-                stock: "15",
+                stock: 15,
               ),
             ],
           ),

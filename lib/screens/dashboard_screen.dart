@@ -43,7 +43,7 @@ class DashboardScreen extends StatelessWidget {
                 EstadisticaCard(
                   color: AppColors.warning,
                   icon: Icons.warning_amber_outlined,
-                  title: "Productos en Stock",
+                  title: "Productos Bajos en Stock",
                   value: "30",
                 ),
                 EstadisticaCard(
