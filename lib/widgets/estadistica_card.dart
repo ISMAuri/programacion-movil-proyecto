@@ -8,9 +8,14 @@ class EstadisticaCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String value;
-  
 
-  const EstadisticaCard({super.key, required this.color, required this.icon, required this.title, this.value = "150"});
+  const EstadisticaCard({
+    super.key,
+    required this.color,
+    required this.icon,
+    required this.title,
+    this.value = "150",
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +42,7 @@ class EstadisticaCard extends StatelessWidget {
                 color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
-                icon,
-                size: 30,
-                color: color,
-              ),
+              child: Icon(icon, size: 30, color: color),
             ),
 
             const SizedBox(width: 12),
@@ -52,12 +53,18 @@ class EstadisticaCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title, style: AppTextStyles.cardTitle),
-                  Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: color)),
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: color,
+                    ),
+                  ),
                 ],
               ),
             ),
             const SizedBox(width: 10),
-
           ],
         ),
       ),
