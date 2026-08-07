@@ -11,7 +11,7 @@ class SearchBarWidget extends StatelessWidget {
       children: [
         // Barra superior
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           child: Row(
             children: [
               Expanded(
@@ -21,16 +21,19 @@ class SearchBarWidget extends StatelessWidget {
                     color: AppColors.white,
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: const TextField(
-                    decoration: InputDecoration(
-                      hintText: "Buscar productos...",
-                      prefixIcon: Icon(Icons.search),
-                      border: InputBorder.none,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: const TextField(
+                      decoration: InputDecoration(
+                        hintText: "Buscar productos...",
+                        prefixIcon: Icon(Icons.search),
+                        border: InputBorder.none,
+                      ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 5),
               Container(
                 height: 46,
                 padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -45,7 +48,7 @@ class SearchBarWidget extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 5),
               Container(
                 height: 46,
                 width: 46,
