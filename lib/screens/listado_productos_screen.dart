@@ -10,12 +10,17 @@ class ListadoProductosScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Productos", style: AppTextStyles.screenTitle),
-        backgroundColor: AppColors.primary,
-        iconTheme: const IconThemeData(
-          color: AppColors.white, // color del icono del drawer
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text("Productos", style: AppTextStyles.screenTitle),
+            Icon(Icons.edit)
+          ],
         ),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
       ),
+      backgroundColor: AppColors.background,
       body: SearchBarWidget(), // Aquí se utiliza el widget de la barra de búsqueda
       floatingActionButton: FloatingActionButton(
         onPressed: () {
