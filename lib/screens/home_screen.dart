@@ -3,6 +3,7 @@ import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 import 'dashboard_screen.dart';
 import 'login_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,7 +16,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   final List<Widget> _screens = [
     const DashboardScreen(),
-    const Center(child: Text("Configuración")),
+    const SettingsScreen(),
   ];
 
   @override
