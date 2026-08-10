@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
+import 'categorias_screen.dart';
 import 'dashboard_screen.dart';
 import 'login_screen.dart';
 import 'settings_screen.dart';
@@ -84,13 +85,7 @@ class Menu extends StatelessWidget {
               ],
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.home),
-            title: const Text('Inicio'),
-            onTap: () {
-              null;
-            },
-          ),
+
           ListTile(
             leading: const Icon(Icons.inventory),
             title: const Text('Productos'),
@@ -102,7 +97,10 @@ class Menu extends StatelessWidget {
             leading: const Icon(Icons.category),
             title: const Text('Categorías'),
             onTap: () {
-              null;
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CategoriasScreen()),
+              );
             },
           ),
           ListTile(

@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
-import '../screens/listado_productos_screen.dart';
 
 class AccesoRapidoCard extends StatelessWidget {
   final Color color;
   final IconData icon;
   final String title;
+  // pasarle screen a la que debe navegar al hacer clic en la tarjeta
+  final Widget screen;
+
 
   const AccesoRapidoCard({
     super.key,
     required this.color,
     required this.icon,
     required this.title,
+    required this.screen,
   });
 
   @override
@@ -22,7 +25,7 @@ class AccesoRapidoCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const Center(child: ListadoProductosScreen()),
+            builder: (context) => screen,
           ),
         );
       },
