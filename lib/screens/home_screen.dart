@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 import 'categorias_screen.dart';
+import 'clientes_screen.dart';
 import 'dashboard_screen.dart';
 import 'login_screen.dart';
+import 'movimientos_screen.dart';
 import 'settings_screen.dart';
+import 'ventas_screen.dart';
+import 'listado_productos_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -90,7 +94,10 @@ class Menu extends StatelessWidget {
             leading: const Icon(Icons.inventory),
             title: const Text('Productos'),
             onTap: () {
-              null;
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ListadoProductosScreen()),
+              );
             },
           ),
           ListTile(
@@ -107,37 +114,39 @@ class Menu extends StatelessWidget {
             leading: const Icon(Icons.shopping_cart),
             title: const Text('Ventas'),
             onTap: () {
-              null;
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const VentasScreen()),
+              );
             },
           ),
           ListTile(
             leading: const Icon(Icons.people),
             title: const Text('Clientes'),
             onTap: () {
-              null;
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ClientesScreen()),
+              );
             },
           ),
           ListTile(
             leading: const Icon(Icons.list),
             title: const Text('Movimientos'),
             onTap: () {
-              null;
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MovimientosScreen()),
+              );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.manage_accounts),
-            title: const Text('Usuarios'),
-            onTap: () {
-              null;
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Configuración'),
-            onTap: () {
-              null;
-            },
-          ),
+          // ListTile(
+          //   leading: const Icon(Icons.settings),
+          //   title: const Text('Configuración'),
+          //   onTap: () {
+          //     null;
+          //   },
+          // ),
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Cerrar sesión'),

@@ -6,6 +6,7 @@ import '../widgets/acceso_rapido_card.dart';
 import 'clientes_screen.dart';
 import 'listado_productos_screen.dart';
 import 'movimientos_screen.dart';
+import 'ventas_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -82,7 +83,7 @@ class DashboardScreen extends StatelessWidget {
                   color: AppColors.primary,
                   icon: Icons.point_of_sale_outlined,
                   title: "Registrar Ventas",
-                  screen: Center(child: Text("Ventas")), 
+                  screen: VentasScreen(), 
                 ),
                 AccesoRapidoCard(
                   color: AppColors.warning,
