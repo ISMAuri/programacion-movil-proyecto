@@ -3,6 +3,7 @@ import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 import '../widgets/estadistica_card.dart';
 import '../widgets/acceso_rapido_card.dart';
+import 'clientes_screen.dart';
 import 'listado_productos_screen.dart';
 import 'movimientos_screen.dart';
 
@@ -75,25 +76,25 @@ class DashboardScreen extends StatelessWidget {
                   color: AppColors.primary,
                   icon: Icons.inventory_2_outlined,
                   title: "Administrar Productos",
-                  screen: ListadoProductosScreen(), // Aquí se pasa la pantalla a la que debe navegar
+                  screen: ListadoProductosScreen(), 
                 ),
                 AccesoRapidoCard(
                   color: AppColors.primary,
                   icon: Icons.point_of_sale_outlined,
                   title: "Registrar Ventas",
-                  screen: Center(child: Text("Ventas")), // Aquí se pasa la pantalla a la que debe navegar
+                  screen: Center(child: Text("Ventas")), 
                 ),
                 AccesoRapidoCard(
                   color: AppColors.warning,
                   icon: Icons.history_outlined,
                   title: "Ver Movimientos",
-                  screen: MovimientosScreen(), // Aquí se pasa la pantalla a la que debe navegar
+                  screen: MovimientosScreen(), 
                 ),
                 AccesoRapidoCard(
                   color: AppColors.secondary,
                   icon: Icons.people_outline,
                   title: "Clientes",
-                  screen: Center(child: Text("Clientes")), // Aquí se pasa la pantalla a la que debe navegar
+                  screen: ClientesScreen(), 
                 ),
               ],
             ),
