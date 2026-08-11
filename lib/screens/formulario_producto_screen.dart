@@ -303,57 +303,14 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
                   ),
                   const SizedBox(height: 14),
 
-                  // Stock: solo editable al crear. En edición, el número
-                  // solo debe cambiar a través de un movimiento de inventario,
-                  // para no perder la trazabilidad de entradas/salidas.
-                  if (!widget.esEdicion)
-                    TextFormField(
-                      controller: _stockController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: "Stock inicial",
-                        prefixIcon: Icon(Icons.inventory_2_outlined),
-                      ),
-                    )
-                  else
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.inventory_2_outlined,
-                            color: AppColors.disabled,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Stock actual: ${widget.stockActual ?? 0}",
-                                  style: AppTextStyles.cardTitle.copyWith(
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                Text(
-                                  "Se ajusta desde Movimientos, no aquí",
-                                  style: AppTextStyles.subtitle.copyWith(
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                  TextFormField(
+                    controller: _stockController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: "Stock",
+                      prefixIcon: Icon(Icons.inventory_2_outlined),
                     ),
+                  ),
 
                   const SizedBox(height: 8),
                   SwitchListTile(
