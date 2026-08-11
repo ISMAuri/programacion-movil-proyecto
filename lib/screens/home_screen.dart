@@ -1,22 +1,16 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
-import 'dashboard_screen.dart';
-import 'configuracion_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatelessWidget {
+  final Widget child;
+  final int selectedIndex;
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
-  final List<Widget> _screens = [
-    const DashboardScreen(),
-    const ConfiguracionScreen(),
-  ];
+  const HomeScreen({
+    super.key,
+    required this.child,
+    required this.selectedIndex,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,21 +25,25 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Colors.white, // color del icono del drawer
         ),
       ),
-      drawer: Menu(),
+      drawer: const Menu(),
       backgroundColor: AppColors.background,
 
       // contenido de la pantalla de inicio
-      body: _screens[_selectedIndex],
+      body: child,
 
       // ----------------------------
       // barra de navegacion inferior
       // ----------------------------
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
+        currentIndex: selectedIndex,
         onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+          if (index == selectedIndex) return;
+
+          if (index == 0) {
+            Navigator.pushReplacementNamed(context, "/home");
+          } else {
+            Navigator.pushReplacementNamed(context, "/configuracion");
+          }
         },
 
         backgroundColor: AppColors.white,
@@ -119,16 +117,9 @@ class Menu extends StatelessWidget {
               Navigator.pushNamed(context, "/movimientos");
             },
           ),
-          // ListTile(
-          //   leading: const Icon(Icons.settings),
-          //   title: const Text('Configuración'),
-          //   onTap: () {
-          //     null;
-          //   },
-          // ),
           ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Cerrar sesión'),
+            leading: const Icon(Icons.logout, color: AppColors.error),
+            title: const Text('Cerrar sesión', style: TextStyle(color: AppColors.error)),
             onTap: () {
               Navigator.pushReplacementNamed(context, "/login");
             },

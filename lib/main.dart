@@ -15,6 +15,7 @@ import 'screens/formulario_cliente_screen.dart';
 import 'screens/formulario_venta_screen.dart';
 import 'screens/formulario_empresa_screen.dart';
 import 'screens/formulario_usuario_screen.dart';
+import 'screens/formulario_datos_fiscales_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,21 +35,27 @@ class MyApp extends StatelessWidget {
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
-        '/home': (context) => const HomeScreen(),
+        "/home": (context) =>
+            const HomeScreen(selectedIndex: 0, child: DashboardScreen()),
+
+        "/configuracion": (context) =>
+            const HomeScreen(selectedIndex: 1, child: ConfiguracionScreen()),
+        // '/home': (context) => const HomeScreen(),
         '/dashboard': (context) => const DashboardScreen(),
         '/categorias': (context) => const CategoriasScreen(),
         '/listado_productos': (context) => const ListadoProductosScreen(),
         '/clientes': (context) => const ClientesScreen(),
         '/movimientos': (context) => const MovimientosScreen(),
         '/ventas': (context) => const VentasScreen(),
-        '/configuracion': (context) => const ConfiguracionScreen(),
+        // '/configuracion': (context) => const ConfiguracionScreen(),
         '/formulario_categoria': (context) => const FormularioCategoriaScreen(),
         '/formulario_producto': (context) => const FormularioProductoScreen(),
         '/formulario_cliente': (context) => const FormularioClienteScreen(),
         '/formulario_venta': (context) => const FormularioVentaScreen(),
         '/formulario_empresa': (context) => const FormularioEmpresaScreen(),
         '/formulario_usuario': (context) => const FormularioUsuarioScreen(),
-
+        '/formulario_datos_fiscales': (context) =>
+            const FormularioDatosFiscalesScreen(),
       },
     );
   }

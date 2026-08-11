@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
-import 'formulario_datos_fiscales_screen.dart';
-import 'formulario_usuario_screen.dart';
-import 'formulario_empresa_screen.dart';
 
 class ConfiguracionScreen extends StatelessWidget {
   const ConfiguracionScreen({super.key});
@@ -31,7 +28,8 @@ class ConfiguracionScreen extends StatelessWidget {
                 icon: Icons.person_outline,
                 titulo: "Mi usuario",
                 subtitulo: "Nombre, correo y contraseña",
-                onTap: () => _irA(context, const FormularioUsuarioScreen()),
+                onTap: () =>
+                    Navigator.pushNamed(context, "/formulario_usuario"),
               ),
             ],
           ),
@@ -47,14 +45,15 @@ class ConfiguracionScreen extends StatelessWidget {
                 icon: Icons.storefront_outlined,
                 titulo: "Datos de la empresa",
                 subtitulo: "Nombre, razón social, RTN, contacto y logo",
-                onTap: () => _irA(context, const FormularioEmpresaScreen()),
+                onTap: () =>
+                    Navigator.pushNamed(context, "/formulario_empresa"),
               ),
               _SettingsItemData(
                 icon: Icons.receipt_long_outlined,
                 titulo: "Datos fiscales (CAI)",
                 subtitulo: "Autorización, rango de facturación y vigencia",
                 onTap: () =>
-                    _irA(context, const FormularioDatosFiscalesScreen()),
+                    Navigator.pushNamed(context, "/formulario_datos_fiscales"),
               ),
             ],
           ),
@@ -72,7 +71,7 @@ class ConfiguracionScreen extends StatelessWidget {
                 subtitulo: null,
                 colorIcono: AppColors.error,
                 onTap: () {
-                  // Cerrar sesión del usuario actual
+                  Navigator.pushReplacementNamed(context, "/login");
                 },
               ),
             ],
@@ -80,10 +79,6 @@ class ConfiguracionScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  void _irA(BuildContext context, Widget screen) {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
   }
 }
 
