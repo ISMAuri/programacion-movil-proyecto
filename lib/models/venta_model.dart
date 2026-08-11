@@ -1,43 +1,30 @@
+import 'detalle_venta_model.dart';
 class Venta {
-  final int idVenta;
+  final int? idVenta;
   final int idCliente;
-  final int idUsuario;
-  final int idAutorizacion;
+  final String nombreCliente;
   final String numeroFactura;
   final DateTime fechaVenta;
+  final String metodoPago;
+  final String estadoPago;
   final double subtotal;
   final double impuesto;
   final double total;
-  final String? estadoPago;
-  final String? metodoPago;
+  final List<DetalleVenta> detalles;
+  final bool estado;
 
-  Venta({
-    required this.idVenta,
+  const Venta({
+    this.idVenta,
     required this.idCliente,
-    required this.idUsuario,
-    required this.idAutorizacion,
+    required this.nombreCliente,
     required this.numeroFactura,
     required this.fechaVenta,
+    required this.metodoPago,
+    required this.estadoPago,
     required this.subtotal,
     required this.impuesto,
     required this.total,
-    this.estadoPago,
-    this.metodoPago,
+    required this.detalles,
+    required this.estado,
   });
-
-  factory Venta.fromJson(Map<String, dynamic> json) {
-    return Venta(
-      idVenta: json['id_venta'],
-      idCliente: json['id_cliente'],
-      idUsuario: json['id_usuario'],
-      idAutorizacion: json['id_autorizacion'],
-      numeroFactura: json['numero_factura'],
-      fechaVenta: DateTime.parse(json['fecha_venta']),
-      subtotal: json['subtotal'].toDouble(),
-      impuesto: json['impuesto'].toDouble(),
-      total: json['total'].toDouble(),
-      estadoPago: json['estado_pago'],
-      metodoPago: json['metodo_pago'],
-    );
-  }
 }

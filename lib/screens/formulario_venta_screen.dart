@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
+import '../models/venta_model.dart';
 
 // ---------------------------------------------------------------------------
 // Modelos Ejemplo
@@ -75,33 +76,7 @@ class _LineaVenta {
 // ---------------------------------------------------------------------------
 
 class FormularioVentaScreen extends StatefulWidget {
-  const FormularioVentaScreen({
-    super.key,
-    this.idVenta,
-    this.clienteInicial,
-    this.clienteNombreInicial,
-    this.numeroFactura,
-    this.metodoPagoInicial,
-    this.estadoPagoInicial,
-    this.fechaVentaInicial,
-    this.productoInicial,
-    this.productoIdInicial,
-    this.cantidadInicial = 1,
-  });
-
-  // null en idVenta -> modo crear. Con dato -> modo editar.
-  final int? idVenta;
-  final ClienteEjemplo? clienteInicial;
-  final String? clienteNombreInicial;
-  final String? numeroFactura;
-  final String? metodoPagoInicial;
-  final String? estadoPagoInicial;
-  final DateTime? fechaVentaInicial;
-  final ProductoEjemplo? productoInicial;
-  final int? productoIdInicial;
-  final int cantidadInicial;
-
-  bool get esEdicion => idVenta != null;
+  const FormularioVentaScreen({super.key});
 
   @override
   State<FormularioVentaScreen> createState() => _FormularioVentaScreenState();
@@ -109,43 +84,62 @@ class FormularioVentaScreen extends StatefulWidget {
 
 class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _facturaController;
+  final TextEditingController _facturaController = TextEditingController();
 
+  Venta? _venta;
   ClienteEjemplo? _clienteSeleccionado;
   String _metodoPago = _metodosPago.first;
   String _estadoPago = _estadosPago.first;
   DateTime _fechaVenta = DateTime.now();
 
-  late final List<_LineaVenta> _lineas;
+  final List<_LineaVenta> _lineas = [_LineaVenta()];
+  bool _estado = true;
+  bool _argumentosCargados = false;
+
+  bool get _esEdicion => _venta != null;
 
   @override
-  void initState() {
-    super.initState();
-    _facturaController = TextEditingController(
-      text: widget.numeroFactura ?? "",
-    );
-    _clienteSeleccionado =
-        widget.clienteInicial ??
-        (widget.clienteNombreInicial == null
-            ? null
-            : _clientesEjemplo.firstWhere(
-                (cliente) => cliente.nombre == widget.clienteNombreInicial,
-              ));
-    _metodoPago = widget.metodoPagoInicial ?? _metodosPago.first;
-    _estadoPago = widget.estadoPagoInicial ?? _estadosPago.first;
-    _fechaVenta = widget.fechaVentaInicial ?? DateTime.now();
-    _lineas = [
-      _LineaVenta(
-        producto:
-            widget.productoInicial ??
-            (widget.productoIdInicial == null
-                ? null
-                : _productosEjemplo.firstWhere(
-                    (producto) => producto.id == widget.productoIdInicial,
-                  )),
-        cantidad: widget.cantidadInicial,
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_argumentosCargados) return;
+    _argumentosCargados = true;
+
+    _venta = ModalRoute.of(context)?.settings.arguments as Venta?;
+    if (_venta == null) return;
+
+    _facturaController.text = _venta!.numeroFactura;
+    _clienteSeleccionado = _clientesEjemplo.firstWhere(
+      (cliente) => cliente.id == _venta!.idCliente,
+      orElse: () => ClienteEjemplo(
+        _venta!.idCliente,
+        _venta!.nombreCliente,
       ),
-    ];
+    );
+    _metodoPago = _venta!.metodoPago;
+    _estadoPago = _venta!.estadoPago;
+    _fechaVenta = _venta!.fechaVenta;
+    _estado = _venta!.estado;
+
+    _lineas
+      ..clear()
+      ..addAll(
+        _venta!.detalles.map(
+          (detalle) => _LineaVenta(
+            producto: _productosEjemplo.firstWhere(
+              (producto) => producto.id == detalle.idProducto,
+              orElse: () => ProductoEjemplo(
+                detalle.idProducto,
+                detalle.nombreProducto,
+                detalle.precioUnitario,
+                detalle.tasaImpuesto,
+              ),
+            ),
+            cantidad: detalle.cantidad,
+          ),
+        ),
+      );
+
+    if (_lineas.isEmpty) _lineas.add(_LineaVenta());
   }
 
   @override
@@ -226,15 +220,6 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
       return;
     }
 
-    final mensaje =
-        "Venta ${widget.esEdicion ? "actualizada" : "registrada"} correctamente";
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
-      );
-
     Navigator.pop(context, true);
   }
 
@@ -246,7 +231,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          widget.esEdicion ? "Editar venta" : "Nueva venta",
+          _esEdicion ? "Editar venta" : "Nueva venta",
           style: AppTextStyles.screenTitle,
         ),
         backgroundColor: AppColors.primary,
@@ -269,10 +254,10 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
               child: ElevatedButton.icon(
                 onPressed: _guardarVenta,
                 icon: Icon(
-                  widget.esEdicion ? Icons.save_outlined : Icons.point_of_sale,
+                  _esEdicion ? Icons.save_outlined : Icons.point_of_sale,
                 ),
                 label: Text(
-                  widget.esEdicion ? "Guardar cambios" : "Registrar venta",
+                  _esEdicion ? "Guardar cambios" : "Registrar venta",
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -376,6 +361,15 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 14),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text("Estado de la venta"),
+              subtitle: Text(_estado ? "Activa" : "Inactiva"),
+              value: _estado,
+              activeColor: AppColors.primary,
+              onChanged: (valor) => setState(() => _estado = valor),
             ),
           ],
         ),
