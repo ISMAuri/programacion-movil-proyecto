@@ -3,9 +3,8 @@ import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 
 // ---------------------------------------------------------------------------
-// Modelos Ejemplo (mientras no hay providers reales conectados)
+// Modelos Ejemplo
 // ---------------------------------------------------------------------------
-
 class ClienteEjemplo {
   final int id;
   final String nombre;
@@ -18,7 +17,12 @@ class ProductoEjemplo {
   final double precioVenta;
   // 0 = exento, 15 o 18 = tasa de ISV
   final double tasaImpuesto;
-  const ProductoEjemplo(this.id, this.nombre, this.precioVenta, this.tasaImpuesto);
+  const ProductoEjemplo(
+    this.id,
+    this.nombre,
+    this.precioVenta,
+    this.tasaImpuesto,
+  );
 }
 
 const List<ClienteEjemplo> _clientesEjemplo = [
@@ -26,6 +30,11 @@ const List<ClienteEjemplo> _clientesEjemplo = [
   ClienteEjemplo(2, "Comercial El Progreso S. de R.L."),
   ClienteEjemplo(3, "María Fernández"),
   ClienteEjemplo(4, "Distribuidora Los Andes"),
+  ClienteEjemplo(5, "Supermercado La Colonia"),
+  ClienteEjemplo(6, "Distribuidora El Sol S.A."),
+  ClienteEjemplo(7, "Tienda de Ropa Fashion"),
+  ClienteEjemplo(8, "Mini Market La Esquina"),
+  ClienteEjemplo(9, "Panadería y Pastelería Dulce Hogar"),
 ];
 
 const List<ProductoEjemplo> _productosEjemplo = [
@@ -37,7 +46,7 @@ const List<ProductoEjemplo> _productosEjemplo = [
 ];
 
 const List<String> _metodosPago = ["Efectivo", "Tarjeta", "Transferencia"];
-const List<String> _estadosPago = ["Pagado", "Pendiente"];
+const List<String> _estadosPago = ["Pagado", "Pendiente", "Anulado"];
 
 // ---------------------------------------------------------------------------
 // Línea de detalle de venta (estado local, no persistido)
@@ -70,17 +79,27 @@ class FormularioVentaScreen extends StatefulWidget {
     super.key,
     this.idVenta,
     this.clienteInicial,
+    this.clienteNombreInicial,
     this.numeroFactura,
     this.metodoPagoInicial,
     this.estadoPagoInicial,
+    this.fechaVentaInicial,
+    this.productoInicial,
+    this.productoIdInicial,
+    this.cantidadInicial = 1,
   });
 
   // null en idVenta -> modo crear. Con dato -> modo editar.
   final int? idVenta;
   final ClienteEjemplo? clienteInicial;
+  final String? clienteNombreInicial;
   final String? numeroFactura;
   final String? metodoPagoInicial;
   final String? estadoPagoInicial;
+  final DateTime? fechaVentaInicial;
+  final ProductoEjemplo? productoInicial;
+  final int? productoIdInicial;
+  final int cantidadInicial;
 
   bool get esEdicion => idVenta != null;
 
@@ -97,7 +116,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
   String _estadoPago = _estadosPago.first;
   DateTime _fechaVenta = DateTime.now();
 
-  final List<_LineaVenta> _lineas = [_LineaVenta()];
+  late final List<_LineaVenta> _lineas;
 
   @override
   void initState() {
@@ -105,9 +124,28 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
     _facturaController = TextEditingController(
       text: widget.numeroFactura ?? "",
     );
-    _clienteSeleccionado = widget.clienteInicial;
+    _clienteSeleccionado =
+        widget.clienteInicial ??
+        (widget.clienteNombreInicial == null
+            ? null
+            : _clientesEjemplo.firstWhere(
+                (cliente) => cliente.nombre == widget.clienteNombreInicial,
+              ));
     _metodoPago = widget.metodoPagoInicial ?? _metodosPago.first;
     _estadoPago = widget.estadoPagoInicial ?? _estadosPago.first;
+    _fechaVenta = widget.fechaVentaInicial ?? DateTime.now();
+    _lineas = [
+      _LineaVenta(
+        producto:
+            widget.productoInicial ??
+            (widget.productoIdInicial == null
+                ? null
+                : _productosEjemplo.firstWhere(
+                    (producto) => producto.id == widget.productoIdInicial,
+                  )),
+        cantidad: widget.cantidadInicial,
+      ),
+    ];
   }
 
   @override
@@ -118,8 +156,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
 
   // ---- Totales -------------------------------------------------------
 
-  double get _totalExento =>
-      _lineas.fold(0, (acc, l) => acc + l.baseExenta);
+  double get _totalExento => _lineas.fold(0, (acc, l) => acc + l.baseExenta);
   double get _totalGravado15 =>
       _lineas.fold(0, (acc, l) => acc + l.baseGravada15);
   double get _totalGravado18 =>
@@ -155,20 +192,50 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
   }
 
   void _guardarVenta() {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text("Completa los datos obligatorios de la venta"),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      return;
+    }
     if (_clienteSeleccionado == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Selecciona un cliente")),
-      );
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text("Selecciona un cliente"),
+            backgroundColor: AppColors.error,
+          ),
+        );
       return;
     }
     if (_lineas.any((l) => l.producto == null)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Completa todos los productos de la venta")),
-      );
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text("Completa todos los productos de la venta"),
+            backgroundColor: AppColors.error,
+          ),
+        );
       return;
     }
-    // Validar y guardar la venta (crear o actualizar), junto a detalle_venta
+
+    final mensaje =
+        "Venta ${widget.esEdicion ? "actualizada" : "registrada"} correctamente";
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
+      );
+
+    Navigator.pop(context, true);
   }
 
   // ---- UI ----------------------------------------------------------------
@@ -242,9 +309,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
                 prefixIcon: Icon(Icons.person_outline),
               ),
               items: _clientesEjemplo
-                  .map(
-                    (c) => DropdownMenuItem(value: c, child: Text(c.nombre)),
-                  )
+                  .map((c) => DropdownMenuItem(value: c, child: Text(c.nombre)))
                   .toList(),
               onChanged: (valor) =>
                   setState(() => _clienteSeleccionado = valor),
@@ -290,12 +355,9 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
                       prefixIcon: Icon(Icons.payments_outlined),
                     ),
                     items: _metodosPago
-                        .map(
-                          (m) => DropdownMenuItem(value: m, child: Text(m)),
-                        )
+                        .map((m) => DropdownMenuItem(value: m, child: Text(m)))
                         .toList(),
-                    onChanged: (valor) =>
-                        setState(() => _metodoPago = valor!),
+                    onChanged: (valor) => setState(() => _metodoPago = valor!),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -308,12 +370,9 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
                       prefixIcon: Icon(Icons.flag_outlined),
                     ),
                     items: _estadosPago
-                        .map(
-                          (e) => DropdownMenuItem(value: e, child: Text(e)),
-                        )
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
-                    onChanged: (valor) =>
-                        setState(() => _estadoPago = valor!),
+                    onChanged: (valor) => setState(() => _estadoPago = valor!),
                   ),
                 ),
               ],
@@ -342,7 +401,9 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
                   onPressed: _agregarLinea,
                   icon: const Icon(Icons.add),
                   label: const Text("Agregar"),
-                  style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                  ),
                 ),
               ],
             ),
@@ -383,15 +444,15 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
                       ),
                     )
                     .toList(),
-                onChanged: (valor) =>
-                    setState(() => linea.producto = valor),
+                onChanged: (valor) => setState(() => linea.producto = valor),
                 validator: (valor) =>
                     valor == null ? "Selecciona un producto" : null,
               ),
             ),
             IconButton(
-              onPressed:
-                  _lineas.length == 1 ? null : () => _eliminarLinea(index),
+              onPressed: _lineas.length == 1
+                  ? null
+                  : () => _eliminarLinea(index),
               icon: const Icon(Icons.delete_outline),
               color: AppColors.error,
             ),
@@ -436,10 +497,8 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
             const SizedBox(height: 12),
             _filaTotal("Subtotal", _subtotal),
             if (_totalExento > 0) _filaTotal("Exento", _totalExento),
-            if (_totalGravado15 > 0)
-              _filaTotal("Gravado 15%", _totalGravado15),
-            if (_totalGravado18 > 0)
-              _filaTotal("Gravado 18%", _totalGravado18),
+            if (_totalGravado15 > 0) _filaTotal("Gravado 15%", _totalGravado15),
+            if (_totalGravado18 > 0) _filaTotal("Gravado 18%", _totalGravado18),
             if (_totalIsv15 > 0) _filaTotal("ISV 15%", _totalIsv15),
             if (_totalIsv18 > 0) _filaTotal("ISV 18%", _totalIsv18),
             const Divider(height: 24),
