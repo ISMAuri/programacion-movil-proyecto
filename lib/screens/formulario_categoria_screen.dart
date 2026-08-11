@@ -1,21 +1,10 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
+import '../models/categoria_model.dart';
 
 class FormularioCategoriaScreen extends StatefulWidget {
-  const FormularioCategoriaScreen({
-    super.key,
-    this.nombreCategoria,
-    this.descripcion,
-    this.activo,
-  });
-
-  // null en nombreCategoria -> modo crear. Con datos -> modo editar.
-  final String? nombreCategoria;
-  final String? descripcion;
-  final bool? activo;
-
-  bool get esEdicion => nombreCategoria != null;
+  const FormularioCategoriaScreen({super.key});
 
   @override
   State<FormularioCategoriaScreen> createState() =>
@@ -25,7 +14,11 @@ class FormularioCategoriaScreen extends StatefulWidget {
 class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
   late final TextEditingController _nombreController;
   late final TextEditingController _descripcionController;
-  late bool _activo;
+  Categoria? _categoria;
+  bool _activo = true;
+  bool _argumentosCargados = false;
+
+  bool get _esEdicion => _categoria != null;
 
   void _guardarCategoria() {
     final nombre = _nombreController.text.trim();
@@ -45,14 +38,14 @@ class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
         );
       return;
     }
-    final mensaje = "Categoría ${widget.esEdicion ? "actualizada" : "creada"} correctamente";
+    final mensaje =
+        "Categoría ${_esEdicion ? "actualizada" : "creada"} correctamente";
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
       );
-      
 
     Navigator.pop(context, true);
   }
@@ -60,13 +53,24 @@ class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
   @override
   void initState() {
     super.initState();
-    _nombreController = TextEditingController(
-      text: widget.nombreCategoria ?? "",
-    );
-    _descripcionController = TextEditingController(
-      text: widget.descripcion ?? "",
-    );
-    _activo = widget.activo ?? true;
+    _nombreController = TextEditingController();
+    _descripcionController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_argumentosCargados) return;
+    _argumentosCargados = true;
+
+    _categoria = ModalRoute.of(context)?.settings.arguments as Categoria?;
+
+    if (_categoria != null) {
+      _nombreController.text = _categoria!.nombreCategoria;
+      _descripcionController.text = _categoria!.descripcion;
+      _activo = _categoria!.estado;
+    }
   }
 
   @override
@@ -75,7 +79,7 @@ class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          widget.esEdicion ? "Editar categoría" : "Nueva categoría",
+          _esEdicion ? "Editar categoría" : "Nueva categoría",
           style: AppTextStyles.screenTitle,
         ),
         backgroundColor: AppColors.primary,
@@ -140,10 +144,8 @@ class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
             height: 50,
             child: ElevatedButton.icon(
               onPressed: _guardarCategoria,
-              icon: Icon(widget.esEdicion ? Icons.save_outlined : Icons.add),
-              label: Text(
-                widget.esEdicion ? "Guardar cambios" : "Crear categoría",
-              ),
+              icon: Icon(_esEdicion ? Icons.save_outlined : Icons.add),
+              label: Text(_esEdicion ? "Guardar cambios" : "Crear categoría"),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.white,

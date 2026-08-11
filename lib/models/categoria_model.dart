@@ -1,13 +1,13 @@
 class Categoria {
   final int idCategoria;
   final String nombreCategoria;
-  final String? descripcion;
+  final String descripcion;
   final bool estado;
 
   Categoria({
     required this.idCategoria,
     required this.nombreCategoria,
-    this.descripcion,
+    required this.descripcion,
     required this.estado,
   });
 

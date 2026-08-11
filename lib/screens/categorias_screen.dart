@@ -1,28 +1,14 @@
 import 'package:flutter/material.dart';
 import '../config/app_text_styles.dart';
 import '../config/app_colors.dart';
+import '../models/categoria_model.dart';
 import '../widgets/categoria_card.dart';
-import 'formulario_categoria_screen.dart';
 
 class CategoriasScreen extends StatelessWidget {
   const CategoriasScreen({super.key});
 
-  void _abrirFormularioEdicion(
-    BuildContext context, {
-    required String nombre,
-    required String descripcion,
-    required bool activo,
-  }) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FormularioCategoriaScreen(
-          nombreCategoria: nombre,
-          descripcion: descripcion,
-          activo: activo,
-        ),
-      ),
-    );
+  void _abrirFormularioEdicion(BuildContext context, Categoria categoria) {
+    Navigator.pushNamed(context, '/formulario_categoria', arguments: categoria);
   }
 
   @override
@@ -41,9 +27,12 @@ class CategoriasScreen extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             onTap: () => _abrirFormularioEdicion(
               context,
-              nombre: "Lácteos",
-              descripcion: "Leche, quesos, yogurt y derivados",
-              activo: true,
+              Categoria(
+                idCategoria: 1,
+                nombreCategoria: "Lácteos",
+                descripcion: "Leche, quesos, yogurt y derivados",
+                estado: true,
+              ),
             ),
             child: const CategoriaCard(
               nombre: "Lácteos",
@@ -55,9 +44,12 @@ class CategoriasScreen extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             onTap: () => _abrirFormularioEdicion(
               context,
-              nombre: "Cereales",
-              descripcion: "Arroz, avena, granos y harinas",
-              activo: true,
+              Categoria(
+                idCategoria: 2,
+                nombreCategoria: "Cereales",
+                descripcion: "Arroz, avena, granos y harinas",
+                estado: true,
+              ),
             ),
             child: const CategoriaCard(
               nombre: "Cereales",
@@ -69,9 +61,12 @@ class CategoriasScreen extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             onTap: () => _abrirFormularioEdicion(
               context,
-              nombre: "Proteínas",
-              descripcion: "Huevos, carnes y embutidos",
-              activo: true,
+              Categoria(
+                idCategoria: 3,
+                nombreCategoria: "Proteínas",
+                descripcion: "Huevos, carnes y embutidos",
+                estado: true,
+              ),
             ),
             child: const CategoriaCard(
               nombre: "Proteínas",
@@ -83,9 +78,12 @@ class CategoriasScreen extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             onTap: () => _abrirFormularioEdicion(
               context,
-              nombre: "Bebidas",
-              descripcion: "Jugos, gaseosas y bebidas alcohólicas",
-              activo: false,
+              Categoria(
+                idCategoria: 4,
+                nombreCategoria: "Bebidas",
+                descripcion: "Jugos, gaseosas y bebidas alcohólicas",
+                estado: false,
+              ),
             ),
             child: const CategoriaCard(
               nombre: "Bebidas",
@@ -97,9 +95,12 @@ class CategoriasScreen extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             onTap: () => _abrirFormularioEdicion(
               context,
-              nombre: "Postres",
-              descripcion: "Galletas, dulces y repostería",
-              activo: true,
+              Categoria(
+                idCategoria: 5,
+                nombreCategoria: "Postres",
+                descripcion: "Galletas, dulces y repostería",
+                estado: true,
+              ),
             ),
             child: const CategoriaCard(
               nombre: "Postres",
@@ -111,12 +112,7 @@ class CategoriasScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const FormularioCategoriaScreen(),
-            ),
-          );
+          Navigator.pushNamed(context, '/formulario_categoria');
         },
         backgroundColor: AppColors.secondary,
         foregroundColor: AppColors.white,
