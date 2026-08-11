@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
+import '../models/producto_model.dart';
 
 // Ejemplo estático de categorías (en la app real vendría de la tabla categoria)
 const List<String> _categoriasDisponibles = [
@@ -29,33 +30,7 @@ const Map<String, double> _tasasImpuesto = {
 };
 
 class FormularioProductoScreen extends StatefulWidget {
-  const FormularioProductoScreen({
-    super.key,
-    this.categoria,
-    this.nombreProducto,
-    this.descripcion,
-    this.codigoProducto,
-    this.precioCompra,
-    this.precioVenta,
-    this.stockActual,
-    this.unidadMedida,
-    this.tasaImpuesto,
-    this.activo,
-  });
-
-  // null en nombreProducto -> modo crear. Con datos -> modo editar.
-  final String? categoria;
-  final String? nombreProducto;
-  final String? descripcion;
-  final String? codigoProducto;
-  final double? precioCompra;
-  final double? precioVenta;
-  final int? stockActual;
-  final String? unidadMedida;
-  final double? tasaImpuesto;
-  final bool? activo;
-
-  bool get esEdicion => nombreProducto != null;
+  const FormularioProductoScreen({super.key});
 
   @override
   State<FormularioProductoScreen> createState() =>
@@ -63,10 +38,15 @@ class FormularioProductoScreen extends StatefulWidget {
 }
 
 class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
+  Producto? _producto;
+  bool _argumentosCargados = false;
+
+  bool get _esEdicion => _producto != null;
+
   late String _categoriaSeleccionada;
   late String _unidadSeleccionada;
   late String _tasaSeleccionada;
-  late bool _activo;
+  late bool _estado;
 
   late final TextEditingController _nombreController;
   late final TextEditingController _descripcionController;
@@ -88,7 +68,7 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
         codigo.isEmpty ||
         precioCompraTexto.isEmpty ||
         precioVentaTexto.isEmpty ||
-        (!widget.esEdicion && stockTexto.isEmpty)) {
+        stockTexto.isEmpty) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
@@ -104,9 +84,7 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
       precioCompraTexto.replaceAll(",", "."),
     );
     final precioVenta = double.tryParse(precioVentaTexto.replaceAll(",", "."));
-    final stock = widget.esEdicion
-        ? (widget.stockActual ?? 0)
-        : int.tryParse(stockTexto);
+    final stock = int.tryParse(stockTexto);
 
     if (precioCompra == null ||
         precioVenta == null ||
@@ -125,49 +103,53 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
       return;
     }
 
-    final mensaje =
-        "Producto ${widget.esEdicion ? "actualizado" : "creado"} correctamente";
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
-      );
-
     Navigator.pop(context, true);
   }
 
   @override
   void initState() {
     super.initState();
-    _categoriaSeleccionada = widget.categoria ?? _categoriasDisponibles.first;
-    _unidadSeleccionada = widget.unidadMedida ?? _unidadesDisponibles.first;
+    _categoriaSeleccionada = _categoriasDisponibles.first;
+    _unidadSeleccionada = _unidadesDisponibles.first;
+    _tasaSeleccionada = "15%";
+    _estado = true;
+
+    _nombreController = TextEditingController();
+    _descripcionController = TextEditingController();
+    _codigoController = TextEditingController();
+    _precioCompraController = TextEditingController();
+    _precioVentaController = TextEditingController();
+    _stockController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_argumentosCargados) return;
+    _argumentosCargados = true;
+
+    _producto = ModalRoute.of(context)?.settings.arguments as Producto?;
+    final producto = _producto;
+
+    if (producto == null) return;
+
+    _categoriaSeleccionada = producto.categoria;
+    _unidadSeleccionada = producto.unidadMedida;
     _tasaSeleccionada = _tasasImpuesto.entries
         .firstWhere(
-          (e) => e.value == (widget.tasaImpuesto ?? 15.0),
+          (entrada) => entrada.value == producto.tasaImpuesto,
           orElse: () => _tasasImpuesto.entries.first,
         )
         .key;
-    _activo = widget.activo ?? true;
+    _estado = producto.estado;
 
-    _nombreController = TextEditingController(
-      text: widget.nombreProducto ?? "",
-    );
-    _descripcionController = TextEditingController(
-      text: widget.descripcion ?? "",
-    );
-    _codigoController = TextEditingController(
-      text: widget.codigoProducto ?? "",
-    );
-    _precioCompraController = TextEditingController(
-      text: widget.precioCompra?.toStringAsFixed(2) ?? "",
-    );
-    _precioVentaController = TextEditingController(
-      text: widget.precioVenta?.toStringAsFixed(2) ?? "",
-    );
-    _stockController = TextEditingController(
-      text: widget.stockActual?.toString() ?? "",
-    );
+    _nombreController.text = producto.nombreProducto;
+    _descripcionController.text = producto.descripcion;
+    _codigoController.text = producto.codigoProducto;
+    _precioCompraController.text = producto.precioCompra.toStringAsFixed(2);
+    _precioVentaController.text = producto.precioVenta.toStringAsFixed(2);
+    _stockController.text = producto.stockActual.toString();
   }
 
   @override
@@ -176,7 +158,7 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          widget.esEdicion ? "Editar producto" : "Nuevo producto",
+          _esEdicion ? "Editar producto" : "Nuevo producto",
           style: AppTextStyles.screenTitle,
         ),
         backgroundColor: AppColors.primary,
@@ -317,17 +299,17 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
                     contentPadding: EdgeInsets.zero,
                     activeTrackColor: AppColors.success,
                     title: Text(
-                      "Producto activo",
+                      "Estado del producto",
                       style: AppTextStyles.subtitle,
                     ),
                     subtitle: Text(
-                      _activo
+                      _estado
                           ? "Visible en el listado y disponible para venta"
                           : "Oculto del listado y no vendible",
                       style: AppTextStyles.subtitle.copyWith(fontSize: 12),
                     ),
-                    value: _activo,
-                    onChanged: (valor) => setState(() => _activo = valor),
+                    value: _estado,
+                    onChanged: (valor) => setState(() => _estado = valor),
                   ),
                 ],
               ),
@@ -341,10 +323,8 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
             height: 50,
             child: ElevatedButton.icon(
               onPressed: _guardarProducto,
-              icon: Icon(widget.esEdicion ? Icons.save_outlined : Icons.add),
-              label: Text(
-                widget.esEdicion ? "Guardar cambios" : "Crear producto",
-              ),
+              icon: Icon(_esEdicion ? Icons.save_outlined : Icons.add),
+              label: Text(_esEdicion ? "Guardar cambios" : "Crear producto"),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.white,
