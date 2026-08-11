@@ -167,7 +167,7 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
                     child: TextField(
                       onChanged: (valor) => setState(() => _busqueda = valor),
                       decoration: const InputDecoration(
-                        hintText: "Buscar por nombre o categoría...",
+                        hintText: "Buscar por nombre, código o categoría...",
                         prefixIcon: Icon(Icons.search),
                         border: InputBorder.none,
                       ),

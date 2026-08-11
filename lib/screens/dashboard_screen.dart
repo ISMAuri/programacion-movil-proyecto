@@ -76,13 +76,13 @@ class DashboardScreen extends StatelessWidget {
                 AccesoRapidoCard(
                   color: AppColors.primary,
                   icon: Icons.inventory_2_outlined,
-                  title: "Administrar Productos",
+                  title: "Ver Productos",
                   screen: ListadoProductosScreen(), 
                 ),
                 AccesoRapidoCard(
                   color: AppColors.primary,
                   icon: Icons.point_of_sale_outlined,
-                  title: "Registrar Ventas",
+                  title: "Ver Ventas",
                   screen: VentasScreen(), 
                 ),
                 AccesoRapidoCard(
@@ -94,7 +94,7 @@ class DashboardScreen extends StatelessWidget {
                 AccesoRapidoCard(
                   color: AppColors.secondary,
                   icon: Icons.people_outline,
-                  title: "Clientes",
+                  title: "Ver Clientes",
                   screen: ClientesScreen(), 
                 ),
               ],
