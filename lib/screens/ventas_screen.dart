@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../config/app_text_styles.dart';
 import '../config/app_colors.dart';
 import '../widgets/venta_card.dart';
+import 'formulario_ventas_screen.dart';
 
 class VentasScreen extends StatelessWidget {
   const VentasScreen({super.key});
@@ -62,7 +63,12 @@ class VentasScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const FormularioVentaScreen(),
+            ),
+          );
         },
         backgroundColor: AppColors.secondary,
         foregroundColor: AppColors.white,

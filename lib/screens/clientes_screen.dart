@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../config/app_text_styles.dart';
 import '../config/app_colors.dart';
 import '../widgets/cliente_card.dart';
+import 'formulario_clientes_screen.dart';
 
 class ClientesScreen extends StatelessWidget {
   const ClientesScreen({super.key});
@@ -54,7 +55,12 @@ class ClientesScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Acción para agregar nuevo cliente
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const FormularioClienteScreen(),
+            ),
+          );
         },
         backgroundColor: AppColors.secondary,
         foregroundColor: AppColors.white,

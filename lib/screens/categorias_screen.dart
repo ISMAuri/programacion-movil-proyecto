@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../config/app_text_styles.dart';
 import '../config/app_colors.dart';
 import '../widgets/categoria_card.dart';
+import 'formulario_categoria_screen.dart';
 
 class CategoriasScreen extends StatelessWidget {
   const CategoriasScreen({super.key});
@@ -47,7 +48,12 @@ class CategoriasScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const FormularioCategoriaScreen(),
+            ),
+          );
         },
         backgroundColor: AppColors.secondary,
         foregroundColor: AppColors.white,
