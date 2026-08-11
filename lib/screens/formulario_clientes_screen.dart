@@ -33,6 +33,53 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
   late final TextEditingController _telefonoController;
   late final TextEditingController _correoController;
 
+  void _guardarCliente() {
+    final nombre = _nombreController.text.trim();
+    final rtn = _rtnController.text.trim();
+    final direccion = _direccionController.text.trim();
+    final telefono = _telefonoController.text.trim();
+    final correo = _correoController.text.trim();
+
+    if (nombre.isEmpty ||
+        rtn.isEmpty ||
+        direccion.isEmpty ||
+        telefono.isEmpty ||
+        correo.isEmpty) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text("Completa todos los campos del cliente"),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      return;
+    }
+
+    if (!correo.contains("@") || !correo.contains(".")) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text("Ingresa un correo electrónico válido"),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      return;
+    }
+
+    final mensaje =
+        "Cliente ${widget.esEdicion ? "actualizado" : "creado"} correctamente";
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
+      );
+
+    Navigator.pop(context, true);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -121,9 +168,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
             width: double.infinity,
             height: 50,
             child: ElevatedButton.icon(
-              onPressed: () {
-                // Validar y guardar el cliente (crear o actualizar)
-              },
+              onPressed: _guardarCliente,
               icon: Icon(widget.esEdicion ? Icons.save_outlined : Icons.add),
               label: Text(
                 widget.esEdicion ? "Guardar cambios" : "Crear cliente",

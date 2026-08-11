@@ -7,6 +7,28 @@ import 'formulario_clientes_screen.dart';
 class ClientesScreen extends StatelessWidget {
   const ClientesScreen({super.key});
 
+  void _abrirFormulario(
+    BuildContext context, {
+    String? nombreCliente,
+    String? rtn,
+    String? direccion,
+    String? telefono,
+    String? correo,
+  }) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FormularioClienteScreen(
+          nombreCliente: nombreCliente,
+          rtn: rtn,
+          direccion: direccion,
+          telefono: telefono,
+          correo: correo,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,50 +40,87 @@ class ClientesScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 10),
-        children: const [
-          ClienteCard(
-            nombreCliente: "Ana Gómez",
-            rtn: "0801-1990-12345",
-            direccion: "Col. Palmira, Tegucigalpa",
-            telefono: "9988-7766",
-            correo: "ana.gomez@email.com",
-            fechaRegistro: "12/01/2025",
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _abrirFormulario(
+              context,
+              nombreCliente: "Ana Gómez",
+              rtn: "0801-1990-12345",
+              direccion: "Col. Palmira, Tegucigalpa",
+              telefono: "9988-7766",
+              correo: "ana.gomez@email.com",
+            ),
+            child: const ClienteCard(
+              nombreCliente: "Ana Gómez",
+              rtn: "0801-1990-12345",
+              direccion: "Col. Palmira, Tegucigalpa",
+              telefono: "9988-7766",
+              correo: "ana.gomez@email.com",
+              fechaRegistro: "12/01/2025",
+            ),
           ),
-          ClienteCard(
-            nombreCliente: "Distribuidora El Sol S.A.",
-            rtn: "0801-2015-67890",
-            direccion: "Blvd. Morazán, Tegucigalpa",
-            telefono: "2234-5566",
-            correo: "contacto@elsol.hn",
-            fechaRegistro: "03/06/2025",
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _abrirFormulario(
+              context,
+              nombreCliente: "Distribuidora El Sol S.A.",
+              rtn: "0801-2015-67890",
+              direccion: "Blvd. Morazán, Tegucigalpa",
+              telefono: "2234-5566",
+              correo: "contacto@elsol.hn",
+            ),
+            child: const ClienteCard(
+              nombreCliente: "Distribuidora El Sol S.A.",
+              rtn: "0801-2015-67890",
+              direccion: "Blvd. Morazán, Tegucigalpa",
+              telefono: "2234-5566",
+              correo: "contacto@elsol.hn",
+              fechaRegistro: "03/06/2025",
+            ),
           ),
-          ClienteCard(
-            nombreCliente: "Roberto Suazo",
-            rtn: "0501-1985-54321",
-            direccion: "Barrio Los Andes, Comayagua",
-            telefono: "9911-2233",
-            correo: "r.suazo@email.com",
-            fechaRegistro: "20/03/2026",
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _abrirFormulario(
+              context,
+              nombreCliente: "Roberto Suazo",
+              rtn: "0501-1985-54321",
+              direccion: "Barrio Los Andes, Comayagua",
+              telefono: "9911-2233",
+              correo: "r.suazo@email.com",
+            ),
+            child: const ClienteCard(
+              nombreCliente: "Roberto Suazo",
+              rtn: "0501-1985-54321",
+              direccion: "Barrio Los Andes, Comayagua",
+              telefono: "9911-2233",
+              correo: "r.suazo@email.com",
+              fechaRegistro: "20/03/2026",
+            ),
           ),
-          ClienteCard(
-            nombreCliente: "Mini Market La Esquina",
-            rtn: "0801-2020-11223",
-            direccion: "Col. Kennedy, Tegucigalpa",
-            telefono: "2245-9900",
-            correo: "laesquina@market.hn",
-            fechaRegistro: "15/07/2026",
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _abrirFormulario(
+              context,
+              nombreCliente: "Mini Market La Esquina",
+              rtn: "0801-2020-11223",
+              direccion: "Col. Kennedy, Tegucigalpa",
+              telefono: "2245-9900",
+              correo: "laesquina@market.hn",
+            ),
+            child: const ClienteCard(
+              nombreCliente: "Mini Market La Esquina",
+              rtn: "0801-2020-11223",
+              direccion: "Col. Kennedy, Tegucigalpa",
+              telefono: "2245-9900",
+              correo: "laesquina@market.hn",
+              fechaRegistro: "15/07/2026",
+            ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const FormularioClienteScreen(),
-            ),
-          );
-        },
+        onPressed: () => _abrirFormulario(context),
         backgroundColor: AppColors.secondary,
         foregroundColor: AppColors.white,
         shape: const CircleBorder(),
