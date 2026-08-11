@@ -167,37 +167,12 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
                     child: TextField(
                       onChanged: (valor) => setState(() => _busqueda = valor),
                       decoration: const InputDecoration(
-                        hintText: "Buscar productos...",
+                        hintText: "Buscar por nombre o categoría...",
                         prefixIcon: Icon(Icons.search),
                         border: InputBorder.none,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 5),
-                Container(
-                  height: 46,
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: const Row(
-                    children: [
-                      Text("Categoría"),
-                      Icon(Icons.keyboard_arrow_down),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 5),
-                Container(
-                  height: 46,
-                  width: 46,
-                  decoration: BoxDecoration(
-                    color: AppColors.secondary,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(Icons.tune, color: Colors.white),
                 ),
               ],
             ),
