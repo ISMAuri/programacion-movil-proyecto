@@ -1,25 +1,10 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
+import '../models/cliente_model.dart';
 
 class FormularioClienteScreen extends StatefulWidget {
-  const FormularioClienteScreen({
-    super.key,
-    this.nombreCliente,
-    this.rtn,
-    this.direccion,
-    this.telefono,
-    this.correo,
-  });
-
-  // null en nombreCliente -> modo crear. Con datos -> modo editar.
-  final String? nombreCliente;
-  final String? rtn;
-  final String? direccion;
-  final String? telefono;
-  final String? correo;
-
-  bool get esEdicion => nombreCliente != null;
+  const FormularioClienteScreen({super.key});
 
   @override
   State<FormularioClienteScreen> createState() =>
@@ -27,11 +12,36 @@ class FormularioClienteScreen extends StatefulWidget {
 }
 
 class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
-  late final TextEditingController _nombreController;
-  late final TextEditingController _rtnController;
-  late final TextEditingController _direccionController;
-  late final TextEditingController _telefonoController;
-  late final TextEditingController _correoController;
+  final _nombreController = TextEditingController();
+  final _rtnController = TextEditingController();
+  final _direccionController = TextEditingController();
+  final _telefonoController = TextEditingController();
+  final _correoController = TextEditingController();
+
+  Cliente? _cliente;
+  bool _estado = true;
+  bool _argumentosCargados = false;
+
+  bool get _esEdicion => _cliente != null;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_argumentosCargados) return;
+    _argumentosCargados = true;
+
+    _cliente = ModalRoute.of(context)?.settings.arguments as Cliente?;
+
+    if (_cliente != null) {
+      _nombreController.text = _cliente!.nombreCliente;
+      _rtnController.text = _cliente!.rtn;
+      _direccionController.text = _cliente!.direccion;
+      _telefonoController.text = _cliente!.telefono;
+      _correoController.text = _cliente!.correo;
+      _estado = _cliente!.estado;
+    }
+  }
 
   void _guardarCliente() {
     final nombre = _nombreController.text.trim();
@@ -45,49 +55,27 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
         direccion.isEmpty ||
         telefono.isEmpty ||
         correo.isEmpty) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text("Completa todos los campos del cliente"),
-            backgroundColor: AppColors.error,
-          ),
-        );
+      _mostrarError('Completa todos los campos del cliente');
       return;
     }
 
-    if (!correo.contains("@") || !correo.contains(".")) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text("Ingresa un correo electrónico válido"),
-            backgroundColor: AppColors.error,
-          ),
-        );
+    if (!correo.contains('@') || !correo.contains('.')) {
+      _mostrarError('Ingresa un correo electrónico válido');
       return;
     }
-
-    final mensaje =
-        "Cliente ${widget.esEdicion ? "actualizado" : "creado"} correctamente";
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
-      );
 
     Navigator.pop(context, true);
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _nombreController = TextEditingController(text: widget.nombreCliente ?? "");
-    _rtnController = TextEditingController(text: widget.rtn ?? "");
-    _direccionController = TextEditingController(text: widget.direccion ?? "");
-    _telefonoController = TextEditingController(text: widget.telefono ?? "");
-    _correoController = TextEditingController(text: widget.correo ?? "");
+  void _mostrarError(String mensaje) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(mensaje),
+          backgroundColor: AppColors.error,
+        ),
+      );
   }
 
   @override
@@ -96,7 +84,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          widget.esEdicion ? "Editar cliente" : "Nuevo cliente",
+          _esEdicion ? 'Editar cliente' : 'Nuevo cliente',
           style: AppTextStyles.screenTitle,
         ),
         backgroundColor: AppColors.primary,
@@ -118,7 +106,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
                   TextFormField(
                     controller: _nombreController,
                     decoration: const InputDecoration(
-                      labelText: "Nombre del cliente",
+                      labelText: 'Nombre del cliente',
                       prefixIcon: Icon(Icons.person_outline),
                     ),
                   ),
@@ -127,7 +115,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
                     controller: _rtnController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: "RTN",
+                      labelText: 'RTN',
                       prefixIcon: Icon(Icons.badge_outlined),
                     ),
                   ),
@@ -135,7 +123,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
                   TextFormField(
                     controller: _direccionController,
                     decoration: const InputDecoration(
-                      labelText: "Dirección",
+                      labelText: 'Dirección',
                       prefixIcon: Icon(Icons.location_on_outlined),
                     ),
                   ),
@@ -144,7 +132,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
                     controller: _telefonoController,
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(
-                      labelText: "Teléfono",
+                      labelText: 'Teléfono',
                       prefixIcon: Icon(Icons.phone_outlined),
                     ),
                   ),
@@ -153,25 +141,34 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
                     controller: _correoController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
-                      labelText: "Correo",
+                      labelText: 'Correo',
                       prefixIcon: Icon(Icons.email_outlined),
                     ),
+                  ),
+                  const SizedBox(height: 14),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Estado del cliente'),
+                    subtitle: Text(_estado ? 'Activo' : 'Inactivo'),
+                    value: _estado,
+                    activeColor: AppColors.primary,
+                    onChanged: (value) {
+                      setState(() => _estado = value);
+                    },
                   ),
                 ],
               ),
             ),
           ),
-
           const SizedBox(height: 24),
-
           SizedBox(
             width: double.infinity,
             height: 50,
             child: ElevatedButton.icon(
               onPressed: _guardarCliente,
-              icon: Icon(widget.esEdicion ? Icons.save_outlined : Icons.add),
+              icon: Icon(_esEdicion ? Icons.save_outlined : Icons.add),
               label: Text(
-                widget.esEdicion ? "Guardar cambios" : "Crear cliente",
+                _esEdicion ? 'Guardar cambios' : 'Crear cliente',
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -182,7 +179,6 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
               ),
             ),
           ),
-
           const SizedBox(height: 15),
         ],
       ),

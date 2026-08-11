@@ -1,20 +1,22 @@
 class Cliente {
-  final int idCliente;
+  final int? idCliente;
   final String nombreCliente;
-  final String? rtn;
-  final String? direccion;
-  final String? telefono;
-  final String? correo;
+  final String rtn;
+  final String direccion;
+  final String telefono;
+  final String correo;
   final DateTime fechaRegistro;
+  final bool estado;
 
-  Cliente({
-    required this.idCliente,
+  const Cliente({
+    this.idCliente,
     required this.nombreCliente,
-    this.rtn,
-    this.direccion,
-    this.telefono,
-    this.correo,
+    required this.rtn,
+    required this.direccion,
+    required this.telefono,
+    required this.correo,
     required this.fechaRegistro,
+    required this.estado,
   });
 
   factory Cliente.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class Cliente {
       telefono: json['telefono'],
       correo: json['correo'],
       fechaRegistro: DateTime.parse(json['fecha_registro']),
+      estado: json['estado'],
     );
   }
 }
