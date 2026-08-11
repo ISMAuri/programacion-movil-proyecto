@@ -104,18 +104,18 @@ class LoginScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-
                       padding: const EdgeInsets.symmetric(vertical: 15),
-
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-
                     onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/home');
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/home',
+                        (route) => false,
+                      );
                     },
-
                     child: const Text(
                       "Ingresar",
                       style: TextStyle(
