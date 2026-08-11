@@ -6,9 +6,9 @@ import 'clientes_screen.dart';
 import 'dashboard_screen.dart';
 import 'login_screen.dart';
 import 'movimientos_screen.dart';
-import 'settings_screen.dart';
 import 'ventas_screen.dart';
 import 'listado_productos_screen.dart';
+import 'configuracion_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   final List<Widget> _screens = [
     const DashboardScreen(),
-    const SettingsScreen(),
+    const ConfiguracionScreen(),
   ];
 
   @override
