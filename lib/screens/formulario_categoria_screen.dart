@@ -27,6 +27,36 @@ class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
   late final TextEditingController _descripcionController;
   late bool _activo;
 
+  void _guardarCategoria() {
+    final nombre = _nombreController.text.trim();
+    final descripcion = _descripcionController.text.trim();
+
+    if (nombre.isEmpty || descripcion.isEmpty) {
+      final mensaje = nombre.isEmpty && descripcion.isEmpty
+          ? "Completa el nombre y la descripción"
+          : nombre.isEmpty
+          ? "Completa el nombre de la categoría"
+          : "Completa la descripción de la categoría";
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(mensaje), backgroundColor: AppColors.error),
+        );
+      return;
+    }
+    final mensaje = "Categoría ${widget.esEdicion ? "actualizada" : "creada"} correctamente";
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
+      );
+      
+
+    Navigator.pop(context, true);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -109,9 +139,7 @@ class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
             width: double.infinity,
             height: 50,
             child: ElevatedButton.icon(
-              onPressed: () {
-                // Validar y guardar la categoría (crear o actualizar)
-              },
+              onPressed: _guardarCategoria,
               icon: Icon(widget.esEdicion ? Icons.save_outlined : Icons.add),
               label: Text(
                 widget.esEdicion ? "Guardar cambios" : "Crear categoría",
