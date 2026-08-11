@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
-import '../screens/detalle_producto_screen.dart';
 
 class VistaProductoCard extends StatelessWidget {
   final IconData icon;
@@ -9,6 +8,7 @@ class VistaProductoCard extends StatelessWidget {
   final String category;
   final String price;
   final int stock;
+  final VoidCallback onTap;
 
   const VistaProductoCard({
     super.key,
@@ -17,26 +17,20 @@ class VistaProductoCard extends StatelessWidget {
     required this.category,
     required this.price,
     required this.stock,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DetalleProductoScreen(
-              icon: icon,
-              title: title,
-              category: category,
-              price: price,
-              stock: stock,
-            ),
-          ),
-        );
-      },
-      child: _InfoCard(icon: icon, title: title, category: category, price: price, stock: stock),
+      onTap: onTap,
+      child: _InfoCard(
+        icon: icon,
+        title: title,
+        category: category,
+        price: price,
+        stock: stock,
+      ),
     );
   }
 }
@@ -76,7 +70,7 @@ class _InfoCard extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             Container(
               width: 45,
               height: 45,
@@ -92,9 +86,7 @@ class _InfoCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
-                  color: stock > 10
-                      ? AppColors.success
-                      : AppColors.warning,
+                  color: stock > 10 ? AppColors.success : AppColors.warning,
                 ),
               ),
             ),

@@ -75,6 +75,68 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
   late final TextEditingController _precioVentaController;
   late final TextEditingController _stockController;
 
+  void _guardarProducto() {
+    final nombre = _nombreController.text.trim();
+    final descripcion = _descripcionController.text.trim();
+    final codigo = _codigoController.text.trim();
+    final precioCompraTexto = _precioCompraController.text.trim();
+    final precioVentaTexto = _precioVentaController.text.trim();
+    final stockTexto = _stockController.text.trim();
+
+    if (nombre.isEmpty ||
+        descripcion.isEmpty ||
+        codigo.isEmpty ||
+        precioCompraTexto.isEmpty ||
+        precioVentaTexto.isEmpty ||
+        (!widget.esEdicion && stockTexto.isEmpty)) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text("Completa todos los campos del producto"),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      return;
+    }
+
+    final precioCompra = double.tryParse(
+      precioCompraTexto.replaceAll(",", "."),
+    );
+    final precioVenta = double.tryParse(precioVentaTexto.replaceAll(",", "."));
+    final stock = widget.esEdicion
+        ? (widget.stockActual ?? 0)
+        : int.tryParse(stockTexto);
+
+    if (precioCompra == null ||
+        precioVenta == null ||
+        stock == null ||
+        precioCompra < 0 ||
+        precioVenta < 0 ||
+        stock < 0) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text("Ingresa precios y stock válidos"),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      return;
+    }
+
+    final mensaje =
+        "Producto ${widget.esEdicion ? "actualizado" : "creado"} correctamente";
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
+      );
+
+    Navigator.pop(context, true);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -321,9 +383,7 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
             width: double.infinity,
             height: 50,
             child: ElevatedButton.icon(
-              onPressed: () {
-                // Validar y guardar el producto (crear o actualizar)
-              },
+              onPressed: _guardarProducto,
               icon: Icon(widget.esEdicion ? Icons.save_outlined : Icons.add),
               label: Text(
                 widget.esEdicion ? "Guardar cambios" : "Crear producto",
