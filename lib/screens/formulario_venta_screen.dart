@@ -1,60 +1,129 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
+import '../models/cliente_model.dart';
+import '../models/producto_model.dart';
 import '../models/venta_model.dart';
 
-// ---------------------------------------------------------------------------
-// Modelos Ejemplo
-// ---------------------------------------------------------------------------
-class ClienteEjemplo {
-  final int id;
-  final String nombre;
-  const ClienteEjemplo(this.id, this.nombre);
-}
-
-class ProductoEjemplo {
-  final int id;
-  final String nombre;
-  final double precioVenta;
-  // 0 = exento, 15 o 18 = tasa de ISV
-  final double tasaImpuesto;
-  const ProductoEjemplo(
-    this.id,
-    this.nombre,
-    this.precioVenta,
-    this.tasaImpuesto,
-  );
-}
-
-const List<ClienteEjemplo> _clientesEjemplo = [
-  ClienteEjemplo(1, "Consumidor Final"),
-  ClienteEjemplo(2, "Comercial El Progreso S. de R.L."),
-  ClienteEjemplo(3, "María Fernández"),
-  ClienteEjemplo(4, "Distribuidora Los Andes"),
-  ClienteEjemplo(5, "Supermercado La Colonia"),
-  ClienteEjemplo(6, "Distribuidora El Sol S.A."),
-  ClienteEjemplo(7, "Tienda de Ropa Fashion"),
-  ClienteEjemplo(8, "Mini Market La Esquina"),
-  ClienteEjemplo(9, "Panadería y Pastelería Dulce Hogar"),
+final List<Cliente> _clientes = [
+  Cliente(
+    idCliente: 1,
+    nombreCliente: "Consumidor Final",
+    rtn: "",
+    direccion: "",
+    telefono: "",
+    correo: "",
+    fechaRegistro: DateTime(2026, 1, 1),
+    estado: true,
+  ),
+  Cliente(
+    idCliente: 2,
+    nombreCliente: "Comercial El Progreso S. de R.L.",
+    rtn: "08019000000000",
+    direccion: "El Progreso",
+    telefono: "9999-0001",
+    correo: "ventas@elprogreso.hn",
+    fechaRegistro: DateTime(2026, 1, 2),
+    estado: true,
+  ),
+  Cliente(
+    idCliente: 3,
+    nombreCliente: "María Fernández",
+    rtn: "08011999000001",
+    direccion: "Tegucigalpa",
+    telefono: "9999-0002",
+    correo: "maria@email.com",
+    fechaRegistro: DateTime(2026, 1, 3),
+    estado: true,
+  ),
 ];
 
-const List<ProductoEjemplo> _productosEjemplo = [
-  ProductoEjemplo(1, "Camisa polo", 250.00, 15),
-  ProductoEjemplo(2, "Pan francés (docena)", 35.00, 0),
-  ProductoEjemplo(3, "Laptop 14\"", 12500.00, 18),
-  ProductoEjemplo(4, "Cuaderno universitario", 45.00, 15),
-  ProductoEjemplo(5, "Leche entera 1L", 28.00, 0),
+final List<Producto> _productos = [
+  Producto(
+    idProducto: 1,
+    idCategoria: 1,
+    categoria: "Ropa",
+    nombreProducto: "Camisa polo",
+    descripcion: "",
+    codigoProducto: "ROP-001",
+    precioCompra: 180,
+    precioVenta: 250,
+    stockActual: 20,
+    unidadMedida: "Unidad",
+    tasaImpuesto: 15,
+    estado: true,
+  ),
+  Producto(
+    idProducto: 2,
+    idCategoria: 2,
+    categoria: "Panadería",
+    nombreProducto: "Pan francés (docena)",
+    descripcion: "",
+    codigoProducto: "PAN-001",
+    precioCompra: 25,
+    precioVenta: 35,
+    stockActual: 30,
+    unidadMedida: "Docena",
+    tasaImpuesto: 0,
+    estado: true,
+  ),
+  Producto(
+    idProducto: 3,
+    idCategoria: 3,
+    categoria: "Tecnología",
+    nombreProducto: "Laptop 14\"",
+    descripcion: "",
+    codigoProducto: "TEC-001",
+    precioCompra: 10000,
+    precioVenta: 12500,
+    stockActual: 5,
+    unidadMedida: "Unidad",
+    tasaImpuesto: 18,
+    estado: true,
+  ),
+  Producto(
+    idProducto: 4,
+    idCategoria: 4,
+    categoria: "Papelería",
+    nombreProducto: "Cuaderno universitario",
+    descripcion: "",
+    codigoProducto: "PAP-001",
+    precioCompra: 30,
+    precioVenta: 45,
+    stockActual: 40,
+    unidadMedida: "Unidad",
+    tasaImpuesto: 15,
+    estado: true,
+  ),
+  Producto(
+    idProducto: 5,
+    idCategoria: 5,
+    categoria: "Lácteos",
+    nombreProducto: "Leche entera 1L",
+    descripcion: "",
+    codigoProducto: "LAC-001",
+    precioCompra: 22,
+    precioVenta: 28,
+    stockActual: 25,
+    unidadMedida: "Litro",
+    tasaImpuesto: 0,
+    estado: true,
+  ),
 ];
 
-const List<String> _metodosPago = ["Efectivo", "Tarjeta", "Transferencia"];
-const List<String> _estadosPago = ["Pagado", "Pendiente", "Anulado"];
+const List<String> _metodosPago = [
+  "Efectivo",
+  "Tarjeta",
+  "Transferencia, Cheque, Depósito",
+];
+const List<String> _estadosPago = ["Pagado", "Anulado"];
 
 // ---------------------------------------------------------------------------
-// Línea de detalle de venta (estado local, no persistido)
+// Línea de detalle de venta
 // ---------------------------------------------------------------------------
 
 class _LineaVenta {
-  ProductoEjemplo? producto;
+  Producto? producto;
   int cantidad;
 
   _LineaVenta({this.producto, this.cantidad = 1});
@@ -87,7 +156,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
   final TextEditingController _facturaController = TextEditingController();
 
   Venta? _venta;
-  ClienteEjemplo? _clienteSeleccionado;
+  Cliente? _clienteSeleccionado;
   String _metodoPago = _metodosPago.first;
   String _estadoPago = _estadosPago.first;
   DateTime _fechaVenta = DateTime.now();
@@ -108,13 +177,25 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
     if (_venta == null) return;
 
     _facturaController.text = _venta!.numeroFactura;
-    _clienteSeleccionado = _clientesEjemplo.firstWhere(
-      (cliente) => cliente.id == _venta!.idCliente,
-      orElse: () => ClienteEjemplo(
-        _venta!.idCliente,
-        _venta!.nombreCliente,
-      ),
+    final indiceCliente = _clientes.indexWhere(
+      (cliente) => cliente.idCliente == _venta!.idCliente,
     );
+    if (indiceCliente >= 0) {
+      _clienteSeleccionado = _clientes[indiceCliente];
+    } else {
+      final clienteVenta = Cliente(
+        idCliente: _venta!.idCliente,
+        nombreCliente: _venta!.nombreCliente,
+        rtn: "",
+        direccion: "",
+        telefono: "",
+        correo: "",
+        fechaRegistro: _venta!.fechaVenta,
+        estado: true,
+      );
+      _clientes.add(clienteVenta);
+      _clienteSeleccionado = clienteVenta;
+    }
     _metodoPago = _venta!.metodoPago;
     _estadoPago = _venta!.estadoPago;
     _fechaVenta = _venta!.fechaVenta;
@@ -123,20 +204,34 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
     _lineas
       ..clear()
       ..addAll(
-        _venta!.detalles.map(
-          (detalle) => _LineaVenta(
-            producto: _productosEjemplo.firstWhere(
-              (producto) => producto.id == detalle.idProducto,
-              orElse: () => ProductoEjemplo(
-                detalle.idProducto,
-                detalle.nombreProducto,
-                detalle.precioUnitario,
-                detalle.tasaImpuesto,
-              ),
-            ),
-            cantidad: detalle.cantidad,
-          ),
-        ),
+        _venta!.detalles.map((detalle) {
+          final indiceProducto = _productos.indexWhere(
+            (producto) => producto.idProducto == detalle.idProducto,
+          );
+
+          Producto producto;
+          if (indiceProducto >= 0) {
+            producto = _productos[indiceProducto];
+          } else {
+            producto = Producto(
+              idProducto: detalle.idProducto,
+              idCategoria: 0,
+              categoria: "Sin categoría",
+              nombreProducto: detalle.nombreProducto,
+              descripcion: "",
+              codigoProducto: "",
+              precioCompra: 0,
+              precioVenta: detalle.precioUnitario,
+              stockActual: 0,
+              unidadMedida: "Unidad",
+              tasaImpuesto: detalle.tasaImpuesto,
+              estado: true,
+            );
+            _productos.add(producto);
+          }
+
+          return _LineaVenta(producto: producto, cantidad: detalle.cantidad);
+        }),
       );
 
     if (_lineas.isEmpty) _lineas.add(_LineaVenta());
@@ -256,9 +351,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
                 icon: Icon(
                   _esEdicion ? Icons.save_outlined : Icons.point_of_sale,
                 ),
-                label: Text(
-                  _esEdicion ? "Guardar cambios" : "Registrar venta",
-                ),
+                label: Text(_esEdicion ? "Guardar cambios" : "Registrar venta"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.white,
@@ -287,14 +380,20 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
           children: [
             Text("Datos de la venta", style: AppTextStyles.sectionTitle),
             const SizedBox(height: 14),
-            DropdownButtonFormField<ClienteEjemplo>(
+            DropdownButtonFormField<Cliente>(
               initialValue: _clienteSeleccionado,
               decoration: const InputDecoration(
                 labelText: "Cliente",
                 prefixIcon: Icon(Icons.person_outline),
               ),
-              items: _clientesEjemplo
-                  .map((c) => DropdownMenuItem(value: c, child: Text(c.nombre)))
+              items: _clientes
+                  .where((c) => c.estado)
+                  .map(
+                    (c) => DropdownMenuItem(
+                      value: c,
+                      child: Text(c.nombreCliente),
+                    ),
+                  )
                   .toList(),
               onChanged: (valor) =>
                   setState(() => _clienteSeleccionado = valor),
@@ -420,19 +519,20 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
         Row(
           children: [
             Expanded(
-              child: DropdownButtonFormField<ProductoEjemplo>(
+              child: DropdownButtonFormField<Producto>(
                 initialValue: linea.producto,
                 isExpanded: true,
                 decoration: const InputDecoration(
                   labelText: "Producto",
                   prefixIcon: Icon(Icons.inventory_2_outlined),
                 ),
-                items: _productosEjemplo
+                items: _productos
+                    .where((p) => p.estado)
                     .map(
                       (p) => DropdownMenuItem(
                         value: p,
                         child: Text(
-                          "${p.nombre} · ${_lps(p.precioVenta)}",
+                          "${p.nombreProducto} · ${_lps(p.precioVenta)}",
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

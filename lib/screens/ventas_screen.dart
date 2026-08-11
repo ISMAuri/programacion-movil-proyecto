@@ -89,7 +89,7 @@ class VentasScreen extends StatelessWidget {
             subtotal: 2076.27,
             impuesto: 373.73,
             total: 2450.00,
-            estadoPago: "Pendiente",
+            estadoPago: "Anulado",
             metodoPago: "Transferencia",
             estado: true,
             detalles: const [DetalleVenta(idDetalleVenta: 2, idProducto: 3, nombreProducto: "Laptop 14 pulgadas", cantidad: 1, precioUnitario: 2076.27, tasaImpuesto: 18, subtotal: 2076.27)],
