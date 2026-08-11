@@ -15,7 +15,10 @@ class ConfiguracionScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
         children: [
-          Text("Configuración", style: AppTextStyles.screenTitle.copyWith(color: AppColors.primary)),
+          Text(
+            "Configuración",
+            style: AppTextStyles.screenTitle.copyWith(color: AppColors.primary),
+          ),
 
           const SizedBox(height: 24),
 

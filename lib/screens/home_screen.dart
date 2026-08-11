@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
-import 'categorias_screen.dart';
-import 'clientes_screen.dart';
 import 'dashboard_screen.dart';
-import 'login_screen.dart';
-import 'movimientos_screen.dart';
-import 'ventas_screen.dart';
-import 'listado_productos_screen.dart';
 import 'configuracion_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -94,50 +88,35 @@ class Menu extends StatelessWidget {
             leading: const Icon(Icons.inventory),
             title: const Text('Productos'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ListadoProductosScreen()),
-              );
+              Navigator.pushNamed(context, "/listado_productos");
             },
           ),
           ListTile(
             leading: const Icon(Icons.category),
             title: const Text('Categorías'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const CategoriasScreen()),
-              );
+              Navigator.pushNamed(context, "/categorias");
             },
           ),
           ListTile(
             leading: const Icon(Icons.shopping_cart),
             title: const Text('Ventas'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const VentasScreen()),
-              );
+              Navigator.pushNamed(context, "/ventas");
             },
           ),
           ListTile(
             leading: const Icon(Icons.people),
             title: const Text('Clientes'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ClientesScreen()),
-              );
+              Navigator.pushNamed(context, "/clientes");
             },
           ),
           ListTile(
             leading: const Icon(Icons.list),
             title: const Text('Movimientos'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MovimientosScreen()),
-              );
+              Navigator.pushNamed(context, "/movimientos");
             },
           ),
           // ListTile(
@@ -151,10 +130,7 @@ class Menu extends StatelessWidget {
             leading: const Icon(Icons.logout),
             title: const Text('Cerrar sesión'),
             onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              );
+              Navigator.pushReplacementNamed(context, "/login");
             },
           ),
         ],

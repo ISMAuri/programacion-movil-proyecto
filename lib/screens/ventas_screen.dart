@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../config/app_text_styles.dart';
 import '../config/app_colors.dart';
 import '../widgets/venta_card.dart';
-import 'formulario_ventas_screen.dart';
+import 'formulario_venta_screen.dart';
 
 class VentasScreen extends StatelessWidget {
   const VentasScreen({super.key});

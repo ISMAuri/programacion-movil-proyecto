@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 
@@ -30,18 +29,12 @@ class LoginScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Icono
-                Container(
-                  width: 75,
-                  height: 75,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-
-                  child: Icon(
-                    Icons.inventory_2_outlined,
-                    size: 40,
-                    color: AppColors.primary,
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: Image.asset(
+                    'assets/icons/app_icon.png',
+                    width: 120,
+                    height: 120,
                   ),
                 ),
 
@@ -120,12 +113,7 @@ class LoginScreen extends StatelessWidget {
                     ),
 
                     onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HomeScreen(),
-                        ),
-                      );
+                      Navigator.pushReplacementNamed(context, '/home');
                     },
 
                     child: const Text(
