@@ -116,7 +116,7 @@ const List<String> _metodosPago = [
   "Efectivo",
   "Tarjeta",
   "Transferencia",
-  "Cheque"
+  "Cheque",
 ];
 const List<String> _estadosPago = ["Pagado", "Anulado"];
 
@@ -336,34 +336,48 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
+        child: Column(
           children: [
-            _buildDatosGeneralesCard(),
-            const SizedBox(height: 16),
-            _buildProductosCard(),
-            const SizedBox(height: 16),
-            _buildTotalesCard(),
-            const SizedBox(height: 24),
-            SizedBox(
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  _buildDatosGeneralesCard(),
+                  const SizedBox(height: 16),
+                  _buildProductosCard(),
+                  const SizedBox(height: 16),
+                  _buildTotalesCard(),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+            Container(
               width: double.infinity,
-              height: 50,
-              child: ElevatedButton.icon(
-                onPressed: _guardarVenta,
-                icon: Icon(
-                  _esEdicion ? Icons.save_outlined : Icons.point_of_sale,
-                ),
-                label: Text(_esEdicion ? "Guardar cambios" : "Registrar venta"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+              color: AppColors.white,
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    onPressed: _guardarVenta,
+                    icon: Icon(
+                      _esEdicion ? Icons.save_outlined : Icons.point_of_sale,
+                    ),
+                    label: Text(
+                      _esEdicion ? "Guardar cambios" : "Registrar venta",
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 15),
           ],
         ),
       ),
