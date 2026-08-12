@@ -1,25 +1,13 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter/services.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
+import '../models/autorizacion_factura_model.dart';
 
 class FormularioDatosFiscalesScreen extends StatefulWidget {
-  const FormularioDatosFiscalesScreen({
-    super.key,
-    this.cai,
-    this.rangoInicial,
-    this.rangoFinal,
-    this.fechaAutorizacion,
-    this.fechaLimiteEmision,
-  });
+  const FormularioDatosFiscalesScreen({super.key, this.autorizacion});
 
-  // Pantalla siempre en modo edición: cada empresa tiene una
-  // configuración fiscal asociada.
-  final String? cai;
-  final String? rangoInicial;
-  final String? rangoFinal;
-  final DateTime? fechaAutorizacion;
-  final DateTime? fechaLimiteEmision;
+  final AutorizacionFactura? autorizacion;
 
   @override
   State<FormularioDatosFiscalesScreen> createState() =>
@@ -30,124 +18,230 @@ class _FormularioDatosFiscalesScreenState
     extends State<FormularioDatosFiscalesScreen> {
   final _formKey = GlobalKey<FormState>();
 
+  late final AutorizacionFactura _datosIniciales;
   late final TextEditingController _caiController;
+  late final TextEditingController _establecimientoController;
+  late final TextEditingController _puntoEmisionController;
+  late final TextEditingController _tipoDocumentoController;
   late final TextEditingController _rangoInicialController;
   late final TextEditingController _rangoFinalController;
+  late final TextEditingController _siguienteCorrelativoController;
 
-  DateTime? _fechaAutorizacion;
-  DateTime? _fechaLimiteEmision;
+  late DateTime _fechaAutorizacion;
+  late DateTime _fechaLimiteEmision;
+  late bool _estado;
 
   @override
   void initState() {
     super.initState();
 
-    _caiController = TextEditingController(text: widget.cai ?? "");
+    _datosIniciales =
+        widget.autorizacion ??
+        AutorizacionFactura(
+          idAutorizacion: 1,
+          idEmpresa: 1,
+          cai: '3C18C3-8C69E3-1BE5E0-63BE03-0909BF-A0',
+          establecimiento: '000',
+          puntoEmision: '001',
+          tipoDocumento: '01',
+          rangoInicial: 1,
+          rangoFinal: 5000,
+          siguienteCorrelativo: 1,
+          fechaAutorizacion: DateTime(2026, 7, 12),
+          fechaLimiteEmision: DateTime(2027, 7, 12),
+          estado: true,
+        );
 
+    _caiController = TextEditingController(text: _datosIniciales.cai);
+    _establecimientoController = TextEditingController(
+      text: _datosIniciales.establecimiento,
+    );
+    _puntoEmisionController = TextEditingController(
+      text: _datosIniciales.puntoEmision,
+    );
+    _tipoDocumentoController = TextEditingController(
+      text: _datosIniciales.tipoDocumento,
+    );
     _rangoInicialController = TextEditingController(
-      text: widget.rangoInicial ?? "",
+      text: _datosIniciales.rangoInicial.toString(),
     );
-
     _rangoFinalController = TextEditingController(
-      text: widget.rangoFinal ?? "",
+      text: _datosIniciales.rangoFinal.toString(),
     );
-
-    _fechaAutorizacion = widget.fechaAutorizacion;
-    _fechaLimiteEmision = widget.fechaLimiteEmision;
+    _siguienteCorrelativoController = TextEditingController(
+      text: _datosIniciales.siguienteCorrelativo.toString(),
+    );
+    _fechaAutorizacion = _datosIniciales.fechaAutorizacion;
+    _fechaLimiteEmision = _datosIniciales.fechaLimiteEmision;
+    _estado = _datosIniciales.estado;
   }
 
   @override
   void dispose() {
     _caiController.dispose();
+    _establecimientoController.dispose();
+    _puntoEmisionController.dispose();
+    _tipoDocumentoController.dispose();
     _rangoInicialController.dispose();
     _rangoFinalController.dispose();
-
+    _siguienteCorrelativoController.dispose();
     super.dispose();
   }
 
   void _guardar() {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_fechaAutorizacion == null) {
-      _mostrarError("Selecciona la fecha de autorización");
+    final rangoInicial = int.parse(_rangoInicialController.text.trim());
+    final rangoFinal = int.parse(_rangoFinalController.text.trim());
+
+    if (rangoFinal < rangoInicial) {
+      _mostrarError('El rango final no puede ser menor que el rango inicial');
       return;
     }
 
-    if (_fechaLimiteEmision == null) {
-      _mostrarError("Selecciona la fecha límite de emisión");
-      return;
-    }
-
-    if (_fechaLimiteEmision!.isBefore(_fechaAutorizacion!)) {
+    if (_fechaLimiteEmision.isBefore(_fechaAutorizacion)) {
       _mostrarError(
-        "La fecha límite de emisión no puede ser anterior "
-        "a la fecha de autorización",
+        'La fecha límite de emisión no puede ser anterior a la fecha de autorización',
       );
       return;
     }
 
-    // Validar y guardar los datos fiscales
+    final autorizacionActualizada = AutorizacionFactura(
+      idAutorizacion: _datosIniciales.idAutorizacion,
+      idEmpresa: _datosIniciales.idEmpresa,
+      cai: _caiController.text.trim(),
+      establecimiento: _establecimientoController.text,
+      puntoEmision: _puntoEmisionController.text.trim(),
+      tipoDocumento: _tipoDocumentoController.text.trim(),
+      rangoInicial: rangoInicial,
+      rangoFinal: rangoFinal,
+      siguienteCorrelativo: _datosIniciales.siguienteCorrelativo,
+      fechaAutorizacion: _fechaAutorizacion,
+      fechaLimiteEmision: _fechaLimiteEmision,
+      estado: _estado,
+    );
+
+    Navigator.pop(context, autorizacionActualizada);
   }
 
   void _mostrarError(String mensaje) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(mensaje),
-        backgroundColor: AppColors.error,
-      ),
+      SnackBar(content: Text(mensaje), backgroundColor: AppColors.error),
     );
   }
 
-  Future<void> _seleccionarFechaAutorizacion() async {
+  Future<void> _seleccionarFecha({required bool esAutorizacion}) async {
+    final fechaActual = esAutorizacion
+        ? _fechaAutorizacion
+        : _fechaLimiteEmision;
     final fecha = await showDatePicker(
       context: context,
-      initialDate: _fechaAutorizacion ?? DateTime.now(),
+      initialDate: fechaActual,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
 
     if (fecha != null) {
       setState(() {
-        _fechaAutorizacion = fecha;
+        if (esAutorizacion) {
+          _fechaAutorizacion = fecha;
+        } else {
+          _fechaLimiteEmision = fecha;
+        }
       });
     }
   }
 
-  Future<void> _seleccionarFechaLimiteEmision() async {
-    final fecha = await showDatePicker(
-      context: context,
-      initialDate: _fechaLimiteEmision ??
-          _fechaAutorizacion ??
-          DateTime.now(),
-      firstDate: _fechaAutorizacion ?? DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-
-    if (fecha != null) {
-      setState(() {
-        _fechaLimiteEmision = fecha;
-      });
-    }
-  }
-
-  String _formatearFecha(DateTime? fecha) {
-    if (fecha == null) return "";
-
+  String _formatearFecha(DateTime fecha) {
     final dia = fecha.day.toString().padLeft(2, '0');
     final mes = fecha.month.toString().padLeft(2, '0');
-    final anio = fecha.year.toString();
+    return '$dia/$mes/${fecha.year}';
+  }
 
-    return "$dia/$mes/$anio";
+  String? _validarRequerido(String? valor, String mensaje) {
+    return valor == null || valor.trim().isEmpty ? mensaje : null;
+  }
+
+  String? _validarNumero(String? valor, String nombre) {
+    if (valor == null || valor.trim().isEmpty) return 'Ingresa $nombre';
+    final numero = int.tryParse(valor);
+    if (numero == null || numero < 1) return 'Ingresa un número válido';
+    return null;
+  }
+
+  Widget _campoTexto({
+    required TextEditingController controller,
+    required String etiqueta,
+    required IconData icono,
+    bool habilitado = true,
+    TextInputType? teclado,
+    List<TextInputFormatter>? filtros,
+    int? longitudMaxima,
+    String? textoInformativo,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      enabled: habilitado,
+      keyboardType: teclado,
+      inputFormatters: filtros,
+      maxLength: longitudMaxima,
+      decoration: InputDecoration(
+        labelText: etiqueta,
+        prefixIcon: Icon(icono),
+        helperText: textoInformativo,
+        counterText: '',
+      ),
+      validator: validator,
+    );
+  }
+
+  Widget _campoFecha({
+    required String etiqueta,
+    required IconData icono,
+    required DateTime fecha,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: etiqueta,
+          prefixIcon: Icon(icono),
+        ),
+        child: Text(_formatearFecha(fecha)),
+      ),
+    );
+  }
+
+  Widget _tarjeta({required String titulo, required List<Widget> children}) {
+    return Card(
+      elevation: 2,
+      color: AppColors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(titulo, style: AppTextStyles.sectionTitle),
+            const SizedBox(height: 14),
+            ...children,
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    const separador = SizedBox(height: 14);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(
-          "Datos fiscales",
-          style: AppTextStyles.screenTitle,
-        ),
+        title: Text('Datos fiscales', style: AppTextStyles.screenTitle),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
       ),
@@ -156,145 +250,111 @@ class _FormularioDatosFiscalesScreenState
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            Card(
-              elevation: 2,
-              color: AppColors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Autorización fiscal",
-                      style: AppTextStyles.sectionTitle,
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    TextFormField(
-                      controller: _caiController,
-                      decoration: const InputDecoration(
-                        labelText: "CAI",
-                        prefixIcon: Icon(Icons.receipt_long_outlined),
-                      ),
-                      validator: (valor) =>
-                          (valor == null || valor.trim().isEmpty)
-                              ? "Ingresa el CAI"
-                              : null,
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    TextFormField(
-                      controller: _rangoInicialController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: "Rango inicial",
-                        prefixIcon: Icon(Icons.format_list_numbered),
-                      ),
-                      validator: (valor) =>
-                          (valor == null || valor.trim().isEmpty)
-                              ? "Ingresa el rango inicial"
-                              : null,
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    TextFormField(
-                      controller: _rangoFinalController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: "Rango final",
-                        prefixIcon: Icon(Icons.format_list_numbered),
-                      ),
-                      validator: (valor) =>
-                          (valor == null || valor.trim().isEmpty)
-                              ? "Ingresa el rango final"
-                              : null,
-                    ),
-                  ],
+            _tarjeta(
+              titulo: 'Autorización fiscal',
+              children: [
+                _campoTexto(
+                  controller: _caiController,
+                  etiqueta: 'CAI',
+                  icono: Icons.receipt_long_outlined,
+                  longitudMaxima: 50,
+                  textoInformativo:
+                      '37 caracteres (6-6-6-6-6-2 separados por guiones)',
+                  validator: (valor) =>
+                      _validarRequerido(valor, 'Ingresa el CAI'),
                 ),
-              ),
+                separador,
+                _campoTexto(
+                  controller: _establecimientoController,
+                  etiqueta: 'Número de establecimiento',
+                  icono: Icons.store_outlined,
+                  habilitado: false,
+                ),
+                separador,
+                _campoTexto(
+                  controller: _puntoEmisionController,
+                  etiqueta: 'Punto de emisión',
+                  icono: Icons.point_of_sale_outlined,
+                  habilitado: false,
+                ),
+                separador,
+                _campoTexto(
+                  controller: _tipoDocumentoController,
+                  etiqueta: 'Tipo de documento',
+                  icono: Icons.description_outlined,
+                  habilitado: false,
+                ),
+              ],
             ),
-
             const SizedBox(height: 16),
-
-            Card(
-              elevation: 2,
-              color: AppColors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Vigencia",
-                      style: AppTextStyles.sectionTitle,
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    InkWell(
-                      onTap: _seleccionarFechaAutorizacion,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: "Fecha de autorización",
-                          prefixIcon: Icon(Icons.calendar_today_outlined),
-                        ),
-                        child: Text(
-                          _fechaAutorizacion != null
-                              ? _formatearFecha(_fechaAutorizacion)
-                              : "Seleccionar fecha",
-                          style: _fechaAutorizacion != null
-                              ? null
-                              : AppTextStyles.subtitle,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    InkWell(
-                      onTap: _seleccionarFechaLimiteEmision,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: "Fecha límite de emisión",
-                          prefixIcon: Icon(
-                            Icons.event_available_outlined,
-                          ),
-                        ),
-                        child: Text(
-                          _fechaLimiteEmision != null
-                              ? _formatearFecha(_fechaLimiteEmision)
-                              : "Seleccionar fecha",
-                          style: _fechaLimiteEmision != null
-                              ? null
-                              : AppTextStyles.subtitle,
-                        ),
-                      ),
-                    ),
-                  ],
+            _tarjeta(
+              titulo: 'Rango autorizado',
+              children: [
+                _campoTexto(
+                  controller: _rangoInicialController,
+                  etiqueta: 'Rango inicial',
+                  icono: Icons.format_list_numbered,
+                  teclado: TextInputType.number,
+                  filtros: [FilteringTextInputFormatter.digitsOnly],
+                  validator: (valor) =>
+                      _validarNumero(valor, 'el rango inicial'),
                 ),
-              ),
+                separador,
+                _campoTexto(
+                  controller: _rangoFinalController,
+                  etiqueta: 'Rango final',
+                  icono: Icons.format_list_numbered,
+                  teclado: TextInputType.number,
+                  filtros: [FilteringTextInputFormatter.digitsOnly],
+                  validator: (valor) => _validarNumero(valor, 'el rango final'),
+                ),
+                separador,
+                _campoTexto(
+                  controller: _siguienteCorrelativoController,
+                  etiqueta: 'Siguiente número correlativo',
+                  icono: Icons.numbers,
+                  habilitado: false,
+                  textoInformativo:
+                      'Se establece solo al crear una nueva configuración.',
+                ),
+              ],
             ),
-
+            const SizedBox(height: 16),
+            _tarjeta(
+              titulo: 'Vigencia',
+              children: [
+                _campoFecha(
+                  etiqueta: 'Fecha de autorización',
+                  icono: Icons.calendar_today_outlined,
+                  fecha: _fechaAutorizacion,
+                  onTap: () => _seleccionarFecha(esAutorizacion: true),
+                ),
+                separador,
+                _campoFecha(
+                  etiqueta: 'Fecha límite de emisión',
+                  icono: Icons.event_available_outlined,
+                  fecha: _fechaLimiteEmision,
+                  onTap: () => _seleccionarFecha(esAutorizacion: false),
+                ),
+                separador,
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Autorización activa'),
+                  subtitle: Text(_estado ? 'Activa' : 'Inactiva'),
+                  value: _estado,
+                  activeColor: AppColors.primary,
+                  onChanged: (valor) => setState(() => _estado = valor),
+                ),
+              ],
+            ),
             const SizedBox(height: 24),
-
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton.icon(
                 onPressed: _guardar,
                 icon: const Icon(Icons.save_outlined),
-                label: const Text("Guardar cambios"),
+                label: const Text('Guardar cambios'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.white,
@@ -304,7 +364,6 @@ class _FormularioDatosFiscalesScreenState
                 ),
               ),
             ),
-
             const SizedBox(height: 15),
           ],
         ),

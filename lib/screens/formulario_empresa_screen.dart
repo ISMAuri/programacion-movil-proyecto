@@ -85,52 +85,52 @@ class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            Center(
-              child: GestureDetector(
-                onTap: _cambiarLogo,
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 46,
-                      backgroundColor: AppColors.border,
-                      backgroundImage: widget.logoUrl != null
-                          ? NetworkImage(widget.logoUrl!)
-                          : null,
-                      child: widget.logoUrl == null
-                          ? const Icon(
-                              Icons.storefront_outlined,
-                              size: 40,
-                              color: AppColors.disabled,
-                            )
-                          : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.edit,
-                          size: 16,
-                          color: AppColors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Center(
-              child: Text(
-                "Toca para cambiar el logo",
-                style: AppTextStyles.subtitle.copyWith(fontSize: 12),
-              ),
-            ),
+            // Center(
+            //   child: GestureDetector(
+            //     onTap: _cambiarLogo,
+            //     child: Stack(
+            //       children: [
+            //         CircleAvatar(
+            //           radius: 46,
+            //           backgroundColor: AppColors.border,
+            //           backgroundImage: widget.logoUrl != null
+            //               ? NetworkImage(widget.logoUrl!)
+            //               : null,
+            //           child: widget.logoUrl == null
+            //               ? const Icon(
+            //                   Icons.storefront_outlined,
+            //                   size: 40,
+            //                   color: AppColors.disabled,
+            //                 )
+            //               : null,
+            //         ),
+            //         Positioned(
+            //           bottom: 0,
+            //           right: 0,
+            //           child: Container(
+            //             padding: const EdgeInsets.all(6),
+            //             decoration: const BoxDecoration(
+            //               color: AppColors.primary,
+            //               shape: BoxShape.circle,
+            //             ),
+            //             child: const Icon(
+            //               Icons.edit,
+            //               size: 16,
+            //               color: AppColors.white,
+            //             ),
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
+            // const SizedBox(height: 8),
+            // Center(
+            //   child: Text(
+            //     "Toca para cambiar el logo",
+            //     style: AppTextStyles.subtitle.copyWith(fontSize: 12),
+            //   ),
+            // ),
 
             const SizedBox(height: 20),
 
