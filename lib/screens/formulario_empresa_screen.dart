@@ -1,27 +1,13 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
+import '../models/empresa_model.dart';
 
 class FormularioEmpresaScreen extends StatefulWidget {
-  const FormularioEmpresaScreen({
-    super.key,
-    this.nombreEmpresa,
-    this.razonSocial,
-    this.rtn,
-    this.direccion,
-    this.telefono,
-    this.correo,
-    this.logoUrl,
-  });
+  const FormularioEmpresaScreen({super.key, this.empresa});
 
-  // Pantalla siempre en modo edición: cada empresa tiene un único registro.
-  final String? nombreEmpresa;
-  final String? razonSocial;
-  final String? rtn;
-  final String? direccion;
-  final String? telefono;
-  final String? correo;
-  final String? logoUrl;
+  // Pantalla siempre en modo edición
+  final Empresa? empresa;
 
   @override
   State<FormularioEmpresaScreen> createState() =>
@@ -31,6 +17,7 @@ class FormularioEmpresaScreen extends StatefulWidget {
 class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
   final _formKey = GlobalKey<FormState>();
 
+  late final Empresa _empresaInicial;
   late final TextEditingController _nombreController;
   late final TextEditingController _razonSocialController;
   late final TextEditingController _rtnController;
@@ -41,14 +28,36 @@ class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
   @override
   void initState() {
     super.initState();
-    _nombreController = TextEditingController(text: widget.nombreEmpresa ?? "");
-    _razonSocialController = TextEditingController(
-      text: widget.razonSocial ?? "",
+
+    _empresaInicial =
+        widget.empresa ??
+        Empresa(
+          idEmpresa: 1,
+          nombreEmpresa: "Inversiones Sammy",
+          razonSocial: "Inversiones Sammy",
+          rtn: "01079016892580",
+          direccion:
+              "Los Fuertes contiguo al Super Olguita, Roatan, Islas de la Bahia",
+          telefono: "97547973",
+          correo: "inversionesammy2019@hotmail.com",
+        );
+
+    _nombreController = TextEditingController(
+      text: _empresaInicial.nombreEmpresa,
     );
-    _rtnController = TextEditingController(text: widget.rtn ?? "");
-    _direccionController = TextEditingController(text: widget.direccion ?? "");
-    _telefonoController = TextEditingController(text: widget.telefono ?? "");
-    _correoController = TextEditingController(text: widget.correo ?? "");
+    _razonSocialController = TextEditingController(
+      text: _empresaInicial.razonSocial ?? "",
+    );
+    _rtnController = TextEditingController(text: _empresaInicial.rtn ?? "");
+    _direccionController = TextEditingController(
+      text: _empresaInicial.direccion ?? "",
+    );
+    _telefonoController = TextEditingController(
+      text: _empresaInicial.telefono ?? "",
+    );
+    _correoController = TextEditingController(
+      text: _empresaInicial.correo ?? "",
+    );
   }
 
   @override
@@ -64,11 +73,24 @@ class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
 
   void _guardar() {
     if (!_formKey.currentState!.validate()) return;
-    // Validar y guardar los datos de la empresa
+
+    final empresaActualizada = Empresa(
+      idEmpresa: _empresaInicial.idEmpresa,
+      nombreEmpresa: _nombreController.text.trim(),
+      razonSocial: _valorOpcional(_razonSocialController.text),
+      rtn: _valorOpcional(_rtnController.text),
+      direccion: _valorOpcional(_direccionController.text),
+      telefono: _valorOpcional(_telefonoController.text),
+      correo: _valorOpcional(_correoController.text),
+      logo: _empresaInicial.logo,
+    );
+
+    Navigator.pop(context, empresaActualizada);
   }
 
-  void _cambiarLogo() {
-    // Seleccionar/subir un nuevo logo de la empresa
+  String? _valorOpcional(String valor) {
+    final texto = valor.trim();
+    return texto.isEmpty ? null : texto;
   }
 
   @override
@@ -85,53 +107,6 @@ class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            // Center(
-            //   child: GestureDetector(
-            //     onTap: _cambiarLogo,
-            //     child: Stack(
-            //       children: [
-            //         CircleAvatar(
-            //           radius: 46,
-            //           backgroundColor: AppColors.border,
-            //           backgroundImage: widget.logoUrl != null
-            //               ? NetworkImage(widget.logoUrl!)
-            //               : null,
-            //           child: widget.logoUrl == null
-            //               ? const Icon(
-            //                   Icons.storefront_outlined,
-            //                   size: 40,
-            //                   color: AppColors.disabled,
-            //                 )
-            //               : null,
-            //         ),
-            //         Positioned(
-            //           bottom: 0,
-            //           right: 0,
-            //           child: Container(
-            //             padding: const EdgeInsets.all(6),
-            //             decoration: const BoxDecoration(
-            //               color: AppColors.primary,
-            //               shape: BoxShape.circle,
-            //             ),
-            //             child: const Icon(
-            //               Icons.edit,
-            //               size: 16,
-            //               color: AppColors.white,
-            //             ),
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //   ),
-            // ),
-            // const SizedBox(height: 8),
-            // Center(
-            //   child: Text(
-            //     "Toca para cambiar el logo",
-            //     style: AppTextStyles.subtitle.copyWith(fontSize: 12),
-            //   ),
-            // ),
-
             const SizedBox(height: 20),
 
             Card(
@@ -168,10 +143,6 @@ class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
                         labelText: "Razón social",
                         prefixIcon: Icon(Icons.business_outlined),
                       ),
-                      validator: (valor) =>
-                          (valor == null || valor.trim().isEmpty)
-                          ? "Ingresa la razón social"
-                          : null,
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
@@ -181,10 +152,6 @@ class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
                         labelText: "RTN",
                         prefixIcon: Icon(Icons.badge_outlined),
                       ),
-                      validator: (valor) =>
-                          (valor == null || valor.trim().isEmpty)
-                          ? "Ingresa el RTN"
-                          : null,
                     ),
                   ],
                 ),
