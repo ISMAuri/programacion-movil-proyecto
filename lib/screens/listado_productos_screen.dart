@@ -74,6 +74,76 @@ const List<Producto> _productos = [
     tasaImpuesto: 15.0,
     estado: true,
   ),
+  Producto(
+    idProducto: 6,
+    idCategoria: 1,
+    categoria: "Lácteos",
+    nombreProducto: "Queso Crema",
+    descripcion: "Queso crema en presentación de 200 gramos",
+    codigoProducto: "LAC-002",
+    precioCompra: 42.00,
+    precioVenta: 55.00,
+    stockActual: 18,
+    unidadMedida: "Unidad",
+    tasaImpuesto: 15.0,
+    estado: true,
+  ),
+  Producto(
+    idProducto: 7,
+    idCategoria: 2,
+    categoria: "Cereales",
+    nombreProducto: "Avena Integral",
+    descripcion: "Avena integral en presentación de 500 gramos",
+    codigoProducto: "CER-002",
+    precioCompra: 32.00,
+    precioVenta: 42.00,
+    stockActual: 22,
+    unidadMedida: "Paquete",
+    tasaImpuesto: 0.0,
+    estado: true,
+  ),
+  Producto(
+    idProducto: 8,
+    idCategoria: 3,
+    categoria: "Proteínas",
+    nombreProducto: "Atún en Lata",
+    descripcion: "Atún en agua en presentación de 140 gramos",
+    codigoProducto: "PRO-002",
+    precioCompra: 25.00,
+    precioVenta: 34.00,
+    stockActual: 8,
+    unidadMedida: "Unidad",
+    tasaImpuesto: 15.0,
+    estado: true,
+  ),
+  Producto(
+    idProducto: 9,
+    idCategoria: 4,
+    categoria: "Bebidas",
+    nombreProducto: "Jugo de Naranja 1L",
+    descripcion: "Jugo de naranja en presentación de un litro",
+    codigoProducto: "BEB-002",
+    precioCompra: 38.00,
+    precioVenta: 49.00,
+    stockActual: 16,
+    unidadMedida: "Unidad",
+    tasaImpuesto: 15.0,
+    estado: true,
+  ),
+  Producto(
+    idProducto: 10,
+    idCategoria: 5,
+    categoria: "Postres",
+    nombreProducto: "Pastel de Vainilla",
+    descripcion: "Pastel de vainilla para ocho porciones",
+    codigoProducto: "POS-002",
+    precioCompra: 120.00,
+    precioVenta: 160.00,
+    stockActual: 4,
+    unidadMedida: "Unidad",
+    tasaImpuesto: 15.0,
+    estado: true,
+  ),
 ];
 
 class ListadoProductosScreen extends StatefulWidget {
@@ -172,15 +242,17 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
             child: productos.isEmpty
                 ? const Center(child: Text("No se encontraron productos"))
                 : ListView.builder(
+                    padding: const EdgeInsets.only(
+                      left: 10,
+                      right: 10,
+                      bottom: 90,
+                    ),
                     itemCount: productos.length,
                     itemBuilder: (context, index) {
                       final producto = productos[index];
 
                       return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
+                        margin: const EdgeInsets.only(bottom: 10),
                         color: AppColors.white,
                         elevation: 1,
                         shape: RoundedRectangleBorder(
