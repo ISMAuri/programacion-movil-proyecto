@@ -259,72 +259,62 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                         clipBehavior: Clip.antiAlias,
-                        child: InkWell(
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(14),
                           onTap: () => _abrirFormulario(producto),
-                          child: Padding(
-                            padding: const EdgeInsets.all(14),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.background,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    _obtenerIcono(producto.categoria),
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        producto.nombreProducto,
-                                        style: AppTextStyles.cardTitle,
-                                      ),
-                                      const SizedBox(height: 3),
-                                      Text(
-                                        producto.categoria,
-                                        style: AppTextStyles.subtitle,
-                                      ),
-                                      const SizedBox(height: 5),
-                                      Text(
-                                        "Stock: ${producto.stockActual}",
-                                        style: AppTextStyles.subtitle.copyWith(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                          color: producto.stockActual > 10
-                                              ? AppColors.success
-                                              : AppColors.warning,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      "L. ${producto.precioVenta.toStringAsFixed(2)}",
-                                      style: AppTextStyles.cardTitle.copyWith(
-                                        color: AppColors.success,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    const Icon(
-                                      Icons.chevron_right,
-                                      color: AppColors.disabled,
-                                    ),
-                                  ],
-                                ),
-                              ],
+                          leading: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: AppColors.background,
+                              borderRadius: BorderRadius.circular(12),
                             ),
+                            child: Icon(
+                              _obtenerIcono(producto.categoria),
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          title: Text(
+                            producto.nombreProducto,
+                            style: AppTextStyles.cardTitle,
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 3),
+                              Text(
+                                producto.categoria,
+                                style: AppTextStyles.subtitle,
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                "Stock: ${producto.stockActual}",
+                                style: AppTextStyles.subtitle.copyWith(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: producto.stockActual > 10
+                                      ? AppColors.success
+                                      : AppColors.warning,
+                                ),
+                              ),
+                            ],
+                          ),
+                          trailing: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                "L. ${producto.precioVenta.toStringAsFixed(2)}",
+                                style: AppTextStyles.cardTitle.copyWith(
+                                  color: AppColors.success,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Icon(
+                                Icons.chevron_right,
+                                color: AppColors.disabled,
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -343,3 +333,4 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
     );
   }
 }
+  
