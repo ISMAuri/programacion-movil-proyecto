@@ -111,10 +111,12 @@ final List<Producto> _productos = [
   ),
 ];
 
+// Estos son los metodos de pago que maneja Inversiones Sammy
 const List<String> _metodosPago = [
   "Efectivo",
   "Tarjeta",
-  "Transferencia, Cheque, Depósito",
+  "Transferencia",
+  "Cheque"
 ];
 const List<String> _estadosPago = ["Pagado", "Anulado"];
 

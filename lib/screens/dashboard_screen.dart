@@ -9,94 +9,134 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final estadisticas = [
+      {
+        'color': AppColors.primary,
+        'icon': Icons.inventory_2_outlined,
+        'title': 'Total de Productos',
+        'value': '150',
+        'routeName': '/listado_productos',
+      },
+      {
+        'color': AppColors.success,
+        'icon': Icons.check_circle_outlined,
+        'title': 'Productos Vendidos',
+        'value': '120',
+        'routeName': '/ventas',
+      },
+      {
+        'color': AppColors.warning,
+        'icon': Icons.warning_amber_outlined,
+        'title': 'Productos Bajos en Stock',
+        'value': '30',
+        'routeName': '/listado_productos',
+      },
+      {
+        'color': AppColors.error,
+        'icon': Icons.error_outline,
+        'title': 'Productos Agotados',
+        'value': '5',
+        'routeName': '/listado_productos',
+      },
+    ];
+
+    final accesosRapidos = [
+      {
+        'color': AppColors.primary,
+        'icon': Icons.inventory_2_outlined,
+        'title': 'Ver Productos',
+        'routeName': '/listado_productos',
+      },
+      {
+        'color': AppColors.primary,
+        'icon': Icons.point_of_sale_outlined,
+        'title': 'Ver Ventas',
+        'routeName': '/ventas',
+      },
+      {
+        'color': AppColors.warning,
+        'icon': Icons.history_outlined,
+        'title': 'Ver Movimientos',
+        'routeName': '/movimientos',
+      },
+      {
+        'color': AppColors.secondary,
+        'icon': Icons.people_outline,
+        'title': 'Ver Clientes',
+        'routeName': '/clientes',
+      },
+    ];
+
     return SingleChildScrollView(
       child: Container(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("¡Hola, Usuario!", style: AppTextStyles.sectionTitle),
+            Text(
+              '¡Hola, Usuario!',
+              style: AppTextStyles.sectionTitle,
+            ),
             const SizedBox(height: 4),
             Text(
-              "Aquí tienes un resumen de tu inventario.",
+              'Aquí tienes un resumen de tu inventario.',
               style: AppTextStyles.subtitle,
             ),
             const SizedBox(height: 15),
 
-            GridView.count(
+            GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              childAspectRatio: 1.2,
-              children: [
-                EstadisticaCard(
-                  color: AppColors.primary,
-                  icon: Icons.inventory_2_outlined,
-                  title: "Total de Productos",
-                  value: "150",
-                  routeName: '/listado_productos',
-                ),
-                EstadisticaCard(
-                  color: AppColors.success,
-                  icon: Icons.check_circle_outlined,
-                  title: "Productos Vendidos",
-                  value: "120",
-                  routeName: '/ventas',
-                ),
-                EstadisticaCard(
-                  color: AppColors.warning,
-                  icon: Icons.warning_amber_outlined,
-                  title: "Productos Bajos en Stock",
-                  value: "30",
-                  routeName: '/listado_productos',
-                ),
-                EstadisticaCard(
-                  color: AppColors.error,
-                  icon: Icons.error_outline,
-                  title: "Productos Agotados",
-                  value: "5",
-                  routeName: '/listado_productos',
-                ),
-              ],
+              itemCount: estadisticas.length,
+              gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 1.2,
+              ),
+              itemBuilder: (context, index) {
+                final estadistica = estadisticas[index];
+
+                return EstadisticaCard(
+                  color: estadistica['color'] as Color,
+                  icon: estadistica['icon'] as IconData,
+                  title: estadistica['title'] as String,
+                  value: estadistica['value'] as String,
+                  routeName: estadistica['routeName'] as String,
+                );
+              },
             ),
 
             const SizedBox(height: 20),
-            Text("Accesos rápidos", style: AppTextStyles.sectionTitle),
+            Text(
+              'Accesos rápidos',
+              style: AppTextStyles.sectionTitle,
+            ),
             const SizedBox(height: 4),
-            Text("Algunas funciones comunes.", style: AppTextStyles.subtitle),
+            Text(
+              'Algunas funciones comunes.',
+              style: AppTextStyles.subtitle,
+            ),
             const SizedBox(height: 15),
 
-            GridView.count(
+            GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 1.5,
-              crossAxisCount: 2,
-              children: [
-                AccesoRapidoCard(
-                  color: AppColors.primary,
-                  icon: Icons.inventory_2_outlined,
-                  title: "Ver Productos",
-                  routeName: '/listado_productos',
-                ),
-                AccesoRapidoCard(
-                  color: AppColors.primary,
-                  icon: Icons.point_of_sale_outlined,
-                  title: "Ver Ventas",
-                  routeName: '/ventas',
-                ),
-                AccesoRapidoCard(
-                  color: AppColors.warning,
-                  icon: Icons.history_outlined,
-                  title: "Ver Movimientos",
-                  routeName: '/movimientos',
-                ),
-                AccesoRapidoCard(
-                  color: AppColors.secondary,
-                  icon: Icons.people_outline,
-                  title: "Ver Clientes",
-                  routeName: '/clientes',
-                ),
-              ],
+              itemCount: accesosRapidos.length,
+              gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 1.5,
+              ),
+              itemBuilder: (context, index) {
+                final acceso = accesosRapidos[index];
+
+                return AccesoRapidoCard(
+                  color: acceso['color'] as Color,
+                  icon: acceso['icon'] as IconData,
+                  title: acceso['title'] as String,
+                  routeName: acceso['routeName'] as String,
+                );
+              },
             ),
           ],
         ),
