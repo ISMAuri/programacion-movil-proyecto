@@ -210,6 +210,8 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
   @override
   Widget build(BuildContext context) {
     final productos = _productosFiltrados;
+    final anchoPantalla = MediaQuery.of(context).size.width;
+    final paddingHorizontal = anchoPantalla > 600 ? 80.0 : 10.0;
 
     return Scaffold(
       appBar: AppBar(
@@ -221,7 +223,10 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            padding: EdgeInsets.symmetric(
+              horizontal: paddingHorizontal,
+              vertical: 10,
+            ),
             child: Container(
               height: 46,
               decoration: BoxDecoration(
@@ -242,9 +247,9 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
             child: productos.isEmpty
                 ? const Center(child: Text("No se encontraron productos"))
                 : ListView.builder(
-                    padding: const EdgeInsets.only(
-                      left: 10,
-                      right: 10,
+                    padding: EdgeInsets.only(
+                      left: paddingHorizontal,
+                      right: paddingHorizontal,
                       bottom: 90,
                     ),
                     itemCount: productos.length,
@@ -333,4 +338,3 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
     );
   }
 }
-  
