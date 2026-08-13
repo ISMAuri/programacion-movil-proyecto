@@ -68,7 +68,7 @@ class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
 
     if (_categoria != null) {
       _nombreController.text = _categoria!.nombreCategoria;
-      _descripcionController.text = _categoria!.descripcion;
+      _descripcionController.text = _categoria!.descripcion ?? '';
       _activo = _categoria!.estado;
     }
   }

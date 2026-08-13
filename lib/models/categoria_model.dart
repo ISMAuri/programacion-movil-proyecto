@@ -1,10 +1,10 @@
 class Categoria {
   final int idCategoria;
   final String nombreCategoria;
-  final String descripcion;
+  final String? descripcion;
   final bool estado;
 
-  Categoria({
+  const Categoria({
     required this.idCategoria,
     required this.nombreCategoria,
     required this.descripcion,
@@ -16,7 +16,7 @@ class Categoria {
       idCategoria: json['id_categoria'],
       nombreCategoria: json['nombre_categoria'],
       descripcion: json['descripcion'],
-      estado: json['estado'],
+      estado: json['estado'] == 1 || json['estado'] == true,
     );
   }
 }

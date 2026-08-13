@@ -42,7 +42,7 @@ final List<Producto> _productos = [
   Producto(
     idProducto: 1,
     idCategoria: 1,
-    categoria: "Ropa",
+    // categoria: "Ropa",
     nombreProducto: "Camisa polo",
     descripcion: "",
     codigoProducto: "ROP-001",
@@ -56,7 +56,7 @@ final List<Producto> _productos = [
   Producto(
     idProducto: 2,
     idCategoria: 2,
-    categoria: "Panadería",
+    // categoria: "Panadería",
     nombreProducto: "Pan francés (docena)",
     descripcion: "",
     codigoProducto: "PAN-001",
@@ -70,7 +70,7 @@ final List<Producto> _productos = [
   Producto(
     idProducto: 3,
     idCategoria: 3,
-    categoria: "Tecnología",
+    // categoria: "Tecnología",
     nombreProducto: "Laptop 14\"",
     descripcion: "",
     codigoProducto: "TEC-001",
@@ -84,7 +84,7 @@ final List<Producto> _productos = [
   Producto(
     idProducto: 4,
     idCategoria: 4,
-    categoria: "Papelería",
+    // categoria: "Papelería",
     nombreProducto: "Cuaderno universitario",
     descripcion: "",
     codigoProducto: "PAP-001",
@@ -98,7 +98,7 @@ final List<Producto> _productos = [
   Producto(
     idProducto: 5,
     idCategoria: 5,
-    categoria: "Lácteos",
+    // categoria: "Lácteos",
     nombreProducto: "Leche entera 1L",
     descripcion: "",
     codigoProducto: "LAC-001",
@@ -218,7 +218,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
             producto = Producto(
               idProducto: detalle.idProducto,
               idCategoria: 0,
-              categoria: "Sin categoría",
+              // categoria: "Sin categoría",
               nombreProducto: detalle.nombreProducto,
               descripcion: "",
               codigoProducto: "",
