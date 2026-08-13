@@ -48,7 +48,7 @@ class DashboardScreen extends StatelessWidget {
         'routeName': '/listado_productos',
       },
       {
-        'color': AppColors.primary,
+        'color': AppColors.success,
         'icon': Icons.point_of_sale_outlined,
         'title': 'Ver Ventas',
         'routeName': '/ventas',
@@ -65,6 +65,12 @@ class DashboardScreen extends StatelessWidget {
         'title': 'Ver Clientes',
         'routeName': '/clientes',
       },
+      {
+        'color': AppColors.error,
+        'icon': Icons.category_outlined,
+        'title': 'Ver Categorías',
+        'routeName': '/categorias',
+      },
     ];
 
     return SingleChildScrollView(
@@ -73,10 +79,7 @@ class DashboardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '¡Hola, Usuario!',
-              style: AppTextStyles.sectionTitle,
-            ),
+            Text('¡Hola, Usuario!', style: AppTextStyles.sectionTitle),
             const SizedBox(height: 4),
             Text(
               'Aquí tienes un resumen de tu inventario.',
@@ -88,8 +91,7 @@ class DashboardScreen extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: estadisticas.length,
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 childAspectRatio: 1.2,
               ),
@@ -107,23 +109,16 @@ class DashboardScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 20),
-            Text(
-              'Accesos rápidos',
-              style: AppTextStyles.sectionTitle,
-            ),
+            Text('Accesos rápidos', style: AppTextStyles.sectionTitle),
             const SizedBox(height: 4),
-            Text(
-              'Algunas funciones comunes.',
-              style: AppTextStyles.subtitle,
-            ),
+            Text('Algunas funciones comunes.', style: AppTextStyles.subtitle),
             const SizedBox(height: 15),
 
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: accesosRapidos.length,
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 childAspectRatio: 1.5,
               ),

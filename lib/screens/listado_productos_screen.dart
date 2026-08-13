@@ -286,6 +286,7 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
               ),
             ),
           ),
+          
           Expanded(
             child: productos.isEmpty
                 ? const Center(child: Text("No se encontraron productos"))
