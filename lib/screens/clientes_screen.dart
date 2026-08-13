@@ -102,10 +102,10 @@ class ClientesScreen extends StatelessWidget {
             onTap: () => _abrirFormulario(context, cliente: cliente),
             child: ClienteCard(
               nombreCliente: cliente.nombreCliente,
-              rtn: cliente.rtn,
-              direccion: cliente.direccion,
-              telefono: cliente.telefono,
-              correo: cliente.correo,
+              rtn: cliente.rtn ?? 'N/A',
+              direccion: cliente.direccion ?? 'N/A',
+              telefono: cliente.telefono ?? 'N/A',
+              correo: cliente.correo ?? 'N/A',
               fechaRegistro: _formatearFecha(cliente.fechaRegistro),
             ),
           );

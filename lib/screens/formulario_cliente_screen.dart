@@ -35,10 +35,10 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
 
     if (_cliente != null) {
       _nombreController.text = _cliente!.nombreCliente;
-      _rtnController.text = _cliente!.rtn;
-      _direccionController.text = _cliente!.direccion;
-      _telefonoController.text = _cliente!.telefono;
-      _correoController.text = _cliente!.correo;
+      _rtnController.text = _cliente!.rtn ?? '';
+      _direccionController.text = _cliente!.direccion ?? '';
+      _telefonoController.text = _cliente!.telefono ?? '';
+      _correoController.text = _cliente!.correo ?? '';
       _estado = _cliente!.estado;
     }
   }

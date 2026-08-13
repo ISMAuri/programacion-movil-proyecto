@@ -1,20 +1,20 @@
 class Cliente {
   final int? idCliente;
   final String nombreCliente;
-  final String rtn;
-  final String direccion;
-  final String telefono;
-  final String correo;
+  final String? rtn;
+  final String? direccion;
+  final String? telefono;
+  final String? correo;
   final DateTime fechaRegistro;
   final bool estado;
 
   const Cliente({
     this.idCliente,
     required this.nombreCliente,
-    required this.rtn,
-    required this.direccion,
-    required this.telefono,
-    required this.correo,
+    this.rtn,
+    this.direccion,
+    this.telefono,
+    this.correo,
     required this.fechaRegistro,
     required this.estado,
   });
@@ -28,7 +28,20 @@ class Cliente {
       telefono: json['telefono'],
       correo: json['correo'],
       fechaRegistro: DateTime.parse(json['fecha_registro']),
-      estado: json['estado'],
+      estado: json['estado'] == true || json['estado'] == 1,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id_cliente': idCliente,
+      'nombre_cliente': nombreCliente,
+      'rtn': rtn,
+      'direccion': direccion,
+      'telefono': telefono,
+      'correo': correo,
+      'fecha_registro': fechaRegistro.toIso8601String(),
+      'estado': estado ? 1 : 0,
+    };
   }
 }
