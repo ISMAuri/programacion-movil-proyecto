@@ -63,7 +63,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
       _mostrarError('Ingresa un correo electrónico válido');
       return;
     }
-
+    
     Navigator.pop(context, true);
   }
 

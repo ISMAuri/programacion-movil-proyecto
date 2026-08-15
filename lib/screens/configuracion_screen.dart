@@ -7,9 +7,7 @@ class ConfiguracionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: ListView(
+    return ListView(
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
         children: [
           Text(
@@ -71,14 +69,17 @@ class ConfiguracionScreen extends StatelessWidget {
                 subtitulo: null,
                 colorIcono: AppColors.error,
                 onTap: () {
-                  Navigator.pushReplacementNamed(context, "/login");
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    "/login",
+                    (route) => false,
+                  );
                 },
               ),
             ],
           ),
         ],
-      ),
-    );
+      );
   }
 }
 

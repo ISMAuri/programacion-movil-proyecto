@@ -41,12 +41,12 @@ class DashboardScreen extends StatelessWidget {
     ];
 
     final accesosRapidos = [
-      {
-        'color': AppColors.primary,
-        'icon': Icons.inventory_2_outlined,
-        'title': 'Ver Productos',
-        'routeName': '/listado_productos',
-      },
+      // {
+      //   'color': AppColors.primary,
+      //   'icon': Icons.inventory_2_outlined,
+      //   'title': 'Ver Productos',
+      //   'routeName': '/listado_productos',
+      // },
       {
         'color': AppColors.success,
         'icon': Icons.point_of_sale_outlined,

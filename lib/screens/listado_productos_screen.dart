@@ -5,12 +5,42 @@ import '../models/categoria_model.dart';
 import '../models/producto_model.dart';
 
 const List<Categoria> _categorias = [
-  Categoria(idCategoria: 1, nombreCategoria: "Lácteos", descripcion: null, estado: true),
-  Categoria(idCategoria: 2, nombreCategoria: "Cereales", descripcion: null, estado: true),
-  Categoria(idCategoria: 3, nombreCategoria: "Proteínas", descripcion: null, estado: true),
-  Categoria(idCategoria: 4, nombreCategoria: "Bebidas", descripcion: null, estado: true),
-  Categoria(idCategoria: 5, nombreCategoria: "Postres", descripcion: null, estado: true),
-  Categoria(idCategoria: 6, nombreCategoria: "Limpieza", descripcion: null, estado: true),
+  Categoria(
+    idCategoria: 1,
+    nombreCategoria: "Lácteos",
+    descripcion: null,
+    estado: true,
+  ),
+  Categoria(
+    idCategoria: 2,
+    nombreCategoria: "Cereales",
+    descripcion: null,
+    estado: true,
+  ),
+  Categoria(
+    idCategoria: 3,
+    nombreCategoria: "Proteínas",
+    descripcion: null,
+    estado: true,
+  ),
+  Categoria(
+    idCategoria: 4,
+    nombreCategoria: "Bebidas",
+    descripcion: null,
+    estado: true,
+  ),
+  Categoria(
+    idCategoria: 5,
+    nombreCategoria: "Postres",
+    descripcion: null,
+    estado: true,
+  ),
+  Categoria(
+    idCategoria: 6,
+    nombreCategoria: "Limpieza",
+    descripcion: null,
+    estado: true,
+  ),
 ];
 
 const List<Producto> _productosIniciales = [
@@ -197,9 +227,9 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
         final siguienteId = _productos.isEmpty
             ? 1
             : _productos
-                    .map((item) => item.idProducto ?? 0)
-                    .reduce((a, b) => a > b ? a : b) +
-                1;
+                      .map((item) => item.idProducto ?? 0)
+                      .reduce((a, b) => a > b ? a : b) +
+                  1;
         _productos.add(
           Producto(
             idProducto: siguienteId,
@@ -225,8 +255,17 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
         SnackBar(
           content: Text(
             producto == null
-                ? "Producto creado correctamente"
-                : "Producto actualizado correctamente",
+                ? "Producto creado correctamente, puedes ver el movimiento del producto."
+                : "Producto actualizado correctamente, puedes ver el movimiento del producto.",
+          ),
+          action: SnackBarAction(
+            label: 'VER',
+            onPressed: () {
+              Navigator.pushNamed(
+                context,
+                '/movimientos',
+              );
+            },
           ),
           backgroundColor: AppColors.success,
         ),
@@ -256,132 +295,122 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
     final anchoPantalla = MediaQuery.of(context).size.width;
     final paddingHorizontal = anchoPantalla > 600 ? 80.0 : 10.0;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Productos", style: AppTextStyles.screenTitle),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
-      ),
-      backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: paddingHorizontal,
-              vertical: 10,
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: paddingHorizontal,
+            vertical: 10,
+          ),
+          child: Container(
+            height: 46,
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(18),
             ),
-            child: Container(
-              height: 46,
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: TextField(
-                onChanged: (valor) => setState(() => _busqueda = valor),
-                decoration: const InputDecoration(
-                  hintText: "Buscar por nombre, código o categoría...",
-                  prefixIcon: Icon(Icons.search),
-                  border: InputBorder.none,
-                ),
+            child: TextField(
+              onChanged: (valor) => setState(() => _busqueda = valor),
+              decoration: const InputDecoration(
+                hintText: "Buscar por nombre, código o categoría...",
+                prefixIcon: Icon(Icons.search),
+                border: InputBorder.none,
               ),
             ),
           ),
-          
-          Expanded(
-            child: productos.isEmpty
-                ? const Center(child: Text("No se encontraron productos"))
-                : ListView.builder(
-                    padding: EdgeInsets.only(
-                      left: paddingHorizontal,
-                      right: paddingHorizontal,
-                      bottom: 90,
-                    ),
-                    itemCount: productos.length,
-                    itemBuilder: (context, index) {
-                      final producto = productos[index];
-                      final categoria =
-                          _obtenerCategoria(producto.idCategoria);
+        ),
 
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        color: AppColors.white,
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(14),
-                          onTap: () => _abrirFormulario(producto),
-                          leading: Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: AppColors.background,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              _obtenerIcono(categoria),
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          title: Text(
-                            producto.nombreProducto,
-                            style: AppTextStyles.cardTitle,
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 3),
-                              Text(
-                                categoria?.nombreCategoria ??
-                                    "Sin categoría",
-                                style: AppTextStyles.subtitle,
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                "Stock: ${producto.stockActual}",
-                                style: AppTextStyles.subtitle.copyWith(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: producto.stockActual > 10
-                                      ? AppColors.success
-                                      : AppColors.warning,
-                                ),
-                              ),
-                            ],
-                          ),
-                          trailing: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                "L. ${producto.precioVenta.toStringAsFixed(2)}",
-                                style: AppTextStyles.cardTitle.copyWith(
-                                  color: AppColors.success,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Icon(
-                                Icons.chevron_right,
-                                color: AppColors.disabled,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+        Expanded(
+          child: productos.isEmpty
+              ? const Center(child: Text("No se encontraron productos"))
+              : ListView.builder(
+                  padding: EdgeInsets.only(
+                    left: paddingHorizontal,
+                    right: paddingHorizontal,
+                    bottom: 90,
                   ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _abrirFormulario(),
-        backgroundColor: AppColors.secondary,
-        foregroundColor: AppColors.white,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add),
-      ),
+                  itemCount: productos.length,
+                  itemBuilder: (context, index) {
+                    final producto = productos[index];
+                    final categoria = _obtenerCategoria(producto.idCategoria);
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      color: AppColors.white,
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(14),
+                        onTap: () => _abrirFormulario(producto),
+                        leading: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: AppColors.background,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            _obtenerIcono(categoria),
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        title: Text(
+                          producto.nombreProducto,
+                          style: AppTextStyles.cardTitle,
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 3),
+                            Text(
+                              categoria?.nombreCategoria ?? "Sin categoría",
+                              style: AppTextStyles.subtitle,
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              "Stock: ${producto.stockActual}",
+                              style: AppTextStyles.subtitle.copyWith(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: producto.stockActual > 10
+                                    ? AppColors.success
+                                    : AppColors.warning,
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              "L. ${producto.precioVenta.toStringAsFixed(2)}",
+                              style: AppTextStyles.cardTitle.copyWith(
+                                color: AppColors.success,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Icon(
+                              Icons.chevron_right,
+                              color: AppColors.disabled,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
+    // floatingActionButton: FloatingActionButton(
+    //   onPressed: () => _abrirFormulario(),
+    //   backgroundColor: AppColors.secondary,
+    //   foregroundColor: AppColors.white,
+    //   shape: const CircleBorder(),
+    //   child: const Icon(Icons.add),
+    // ),
   }
 }
