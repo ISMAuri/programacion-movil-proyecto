@@ -1,28 +1,16 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
-import 'categorias_screen.dart';
-import 'clientes_screen.dart';
-import 'dashboard_screen.dart';
-import 'login_screen.dart';
-import 'movimientos_screen.dart';
-import 'settings_screen.dart';
-import 'ventas_screen.dart';
-import 'listado_productos_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatelessWidget {
+  final Widget child;
+  final int selectedIndex;
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
-  final List<Widget> _screens = [
-    const DashboardScreen(),
-    const SettingsScreen(),
-  ];
+  const HomeScreen({
+    super.key,
+    required this.child,
+    required this.selectedIndex,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,21 +25,25 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Colors.white, // color del icono del drawer
         ),
       ),
-      drawer: Menu(),
+      drawer: const Menu(),
       backgroundColor: AppColors.background,
 
       // contenido de la pantalla de inicio
-      body: _screens[_selectedIndex],
+      body: child,
 
       // ----------------------------
       // barra de navegacion inferior
       // ----------------------------
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
+        currentIndex: selectedIndex,
         onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+          if (index == selectedIndex) return;
+
+          if (index == 0) {
+            Navigator.pushReplacementNamed(context, "/home");
+          } else {
+            Navigator.pushReplacementNamed(context, "/configuracion");
+          }
         },
 
         backgroundColor: AppColors.white,
@@ -94,67 +86,42 @@ class Menu extends StatelessWidget {
             leading: const Icon(Icons.inventory),
             title: const Text('Productos'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ListadoProductosScreen()),
-              );
+              Navigator.pushNamed(context, "/listado_productos");
             },
           ),
           ListTile(
             leading: const Icon(Icons.category),
             title: const Text('Categorías'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const CategoriasScreen()),
-              );
+              Navigator.pushNamed(context, "/categorias");
             },
           ),
           ListTile(
             leading: const Icon(Icons.shopping_cart),
             title: const Text('Ventas'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const VentasScreen()),
-              );
+              Navigator.pushNamed(context, "/ventas");
             },
           ),
           ListTile(
             leading: const Icon(Icons.people),
             title: const Text('Clientes'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ClientesScreen()),
-              );
+              Navigator.pushNamed(context, "/clientes");
             },
           ),
           ListTile(
             leading: const Icon(Icons.list),
             title: const Text('Movimientos'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MovimientosScreen()),
-              );
+              Navigator.pushNamed(context, "/movimientos");
             },
           ),
-          // ListTile(
-          //   leading: const Icon(Icons.settings),
-          //   title: const Text('Configuración'),
-          //   onTap: () {
-          //     null;
-          //   },
-          // ),
           ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Cerrar sesión'),
+            leading: const Icon(Icons.logout, color: AppColors.error),
+            title: const Text('Cerrar sesión', style: TextStyle(color: AppColors.error)),
             onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              );
+              Navigator.pushReplacementNamed(context, "/login");
             },
           ),
         ],

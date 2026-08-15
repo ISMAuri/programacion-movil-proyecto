@@ -6,37 +6,28 @@ class AccesoRapidoCard extends StatelessWidget {
   final Color color;
   final IconData icon;
   final String title;
-  // pasarle screen a la que debe navegar al hacer clic en la tarjeta
-  final Widget screen;
-
+  final String routeName;
 
   const AccesoRapidoCard({
     super.key,
     required this.color,
     required this.icon,
     required this.title,
-    required this.screen,
+    required this.routeName,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => screen,
-          ),
-        );
+        Navigator.pushNamed(context, routeName);
       },
       child: Card(
         color: AppColors.white,
-
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 12),
-
             Container(
               width: 45,
               height: 45,
@@ -46,11 +37,9 @@ class AccesoRapidoCard extends StatelessWidget {
               ),
               child: Icon(icon, size: 30, color: color),
             ),
-
             const SizedBox(height: 12),
-
             Text(title, style: AppTextStyles.cardTitle),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
           ],
         ),
       ),
