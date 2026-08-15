@@ -11,6 +11,7 @@ class CategoriasScreen extends StatefulWidget {
   State<CategoriasScreen> createState() => _CategoriasScreenState();
 }
 
+// Lista de categorías de ejemplo
 class _CategoriasScreenState extends State<CategoriasScreen> {
   final List<Categoria> categorias = [
     Categoria(
@@ -45,8 +46,10 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
     ),
   ];
 
+  // ids de categorías favoritas
   final Set<int> categoriasFavoritas = {};
-
+  
+  // acciones sobre las categorías
   void _abrirFormularioEdicion(BuildContext context, Categoria categoria) {
     Navigator.pushNamed(context, '/formulario_categoria', arguments: categoria);
   }
@@ -70,6 +73,7 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
     });
   }
 
+  // formulario enbottomsheet para agregar una nueva categoria
   void _mostrarFormularioCategoria(BuildContext context) {
     final nombreController = TextEditingController();
     final descripcionController = TextEditingController();
@@ -198,7 +202,7 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
 
             direction: DismissDirection.horizontal,
 
-            // Deslizar hacia la derecha -> Editar
+            // si desliza hacia la derecha -> Editar
             background: Container(
               color: Colors.green,
               alignment: Alignment.centerLeft,
@@ -218,7 +222,7 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
               ),
             ),
 
-            // Deslizar hacia la izquierda -> Eliminar
+            // si desliza hacia la izquierda -> Eliminar
             secondaryBackground: Container(
               color: Colors.red,
               alignment: Alignment.centerRight,
@@ -240,7 +244,7 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
             ),
 
             confirmDismiss: (direction) async {
-              // Deslizar hacia la derecha
+              // si desliza hacia la derecha
               if (direction == DismissDirection.startToEnd) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -254,7 +258,7 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
                 return false;
               }
 
-              // Deslizar hacia la izquierda
+              // si desliza hacia la izquierda
               if (direction == DismissDirection.endToStart) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -269,6 +273,7 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
               return false;
             },
 
+            // que se elimne hasta que termine el deslizamiento
             onDismissed: (direction) {
               if (direction == DismissDirection.endToStart) {
                 _eliminarCategoria(categoria);
