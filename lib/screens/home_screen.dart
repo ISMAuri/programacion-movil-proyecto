@@ -65,6 +65,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+      floatingActionButton: _selectedIndex == 1
+          ? FloatingActionButton(
+              onPressed: () =>
+                  Navigator.pushNamed(context, "/formulario_producto"),
+              backgroundColor: AppColors.secondary,
+              foregroundColor: AppColors.white,
+              shape: const CircleBorder(),
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 }

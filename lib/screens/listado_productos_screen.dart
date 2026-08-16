@@ -3,6 +3,7 @@ import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 import '../models/categoria_model.dart';
 import '../models/producto_model.dart';
+import '../widgets/estado_badge.dart';
 
 const List<Categoria> _categorias = [
   Categoria(
@@ -65,10 +66,10 @@ const List<Producto> _productosIniciales = [
     codigoProducto: "CER-001",
     precioCompra: 24.00,
     precioVenta: 30.00,
-    stockActual: 52,
+    stockActual: 0,
     unidadMedida: "Paquete",
     tasaImpuesto: 0.0,
-    estado: true,
+    estado: false,
   ),
   Producto(
     idProducto: 3,
@@ -78,10 +79,10 @@ const List<Producto> _productosIniciales = [
     codigoProducto: "PRO-001",
     precioCompra: 36.00,
     precioVenta: 45.00,
-    stockActual: 5,
+    stockActual: 0,
     unidadMedida: "Unidad",
     tasaImpuesto: 0.0,
-    estado: true,
+    estado: false,
   ),
   Producto(
     idProducto: 4,
@@ -261,10 +262,7 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
           action: SnackBarAction(
             label: 'VER',
             onPressed: () {
-              Navigator.pushNamed(
-                context,
-                '/movimientos',
-              );
+              Navigator.pushNamed(context, '/movimientos');
             },
           ),
           backgroundColor: AppColors.success,
@@ -378,6 +376,12 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
                                     ? AppColors.success
                                     : AppColors.warning,
                               ),
+                            ),
+                            const SizedBox(height: 4),  
+                            EstadoBadge(
+                              estado: producto.estado,
+                              textoActivo: 'Disponible',
+                              textoInactivo: 'No disponible',
                             ),
                           ],
                         ),

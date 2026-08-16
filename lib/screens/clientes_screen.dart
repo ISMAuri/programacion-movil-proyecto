@@ -114,6 +114,7 @@ class ClientesScreen extends StatelessWidget {
               telefono: cliente.telefono ?? 'N/A',
               correo: cliente.correo ?? 'N/A',
               fechaRegistro: _formatearFecha(cliente.fechaRegistro),
+              estado: cliente.estado,
             ),
           );
         },
