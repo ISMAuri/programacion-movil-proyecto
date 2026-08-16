@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
+import '../widgets/opcion_menu_card.dart';
 
 class ConfiguracionScreen extends StatelessWidget {
   const ConfiguracionScreen({super.key});
@@ -8,150 +9,112 @@ class ConfiguracionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-        children: [
-          Text(
-            "Configuración",
-            style: AppTextStyles.screenTitle.copyWith(color: AppColors.primary),
-          ),
-
-          const SizedBox(height: 24),
-
-          Text("Cuenta", style: AppTextStyles.sectionTitle),
-          const SizedBox(height: 10),
-
-          _SettingsGroup(
-            items: [
-              _SettingsItemData(
-                icon: Icons.person_outline,
-                titulo: "Mi usuario",
-                subtitulo: "Nombre, correo y contraseña",
-                onTap: () =>
-                    Navigator.pushNamed(context, "/formulario_usuario"),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-
-          Text("Negocio", style: AppTextStyles.sectionTitle),
-          const SizedBox(height: 10),
-
-          _SettingsGroup(
-            items: [
-              _SettingsItemData(
-                icon: Icons.storefront_outlined,
-                titulo: "Datos de la empresa",
-                subtitulo: "Nombre, razón social, RTN, contacto y logo",
-                onTap: () =>
-                    Navigator.pushNamed(context, "/formulario_empresa"),
-              ),
-              _SettingsItemData(
-                icon: Icons.receipt_long_outlined,
-                titulo: "Datos fiscales (CAI)",
-                subtitulo: "Autorización, rango de facturación y vigencia",
-                onTap: () =>
-                    Navigator.pushNamed(context, "/formulario_datos_fiscales"),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-
-          Text("Aplicación", style: AppTextStyles.sectionTitle),
-          const SizedBox(height: 10),
-
-          _SettingsGroup(
-            items: [
-              _SettingsItemData(
-                icon: Icons.logout,
-                titulo: "Cerrar sesión",
-                subtitulo: null,
-                colorIcono: AppColors.error,
-                onTap: () {
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    "/login",
-                    (route) => false,
-                  );
-                },
-              ),
-            ],
-          ),
-        ],
-      );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Widgets de soporte
-// ---------------------------------------------------------------------------
-
-class _SettingsItemData {
-  final IconData icon;
-  final String titulo;
-  final String? subtitulo;
-  final Color? colorIcono;
-  final VoidCallback onTap;
-
-  const _SettingsItemData({
-    required this.icon,
-    required this.titulo,
-    required this.subtitulo,
-    required this.onTap,
-    this.colorIcono,
-  });
-}
-
-class _SettingsGroup extends StatelessWidget {
-  const _SettingsGroup({required this.items});
-
-  final List<_SettingsItemData> items;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      color: AppColors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        children: [
-          for (int i = 0; i < items.length; i++) ...[
-            _SettingsTile(data: items[i]),
-            if (i != items.length - 1)
-              Divider(height: 1, color: AppColors.border, indent: 56),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _SettingsTile extends StatelessWidget {
-  const _SettingsTile({required this.data});
-
-  final _SettingsItemData data;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = data.colorIcono ?? AppColors.primary;
-
-    return ListTile(
-      onTap: data.onTap,
-      leading: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+      children: [
+        Text(
+          "Configuración",
+          style: AppTextStyles.screenTitle.copyWith(color: AppColors.primary),
         ),
-        child: Icon(data.icon, color: color, size: 20),
-      ),
-      title: Text(data.titulo, style: AppTextStyles.cardTitle),
-      subtitle: data.subtitulo != null
-          ? Text(data.subtitulo!, style: AppTextStyles.subtitle)
-          : null,
-      trailing: const Icon(Icons.chevron_right, color: AppColors.disabled),
+
+        const SizedBox(height: 24),
+
+        Text("Cuenta", style: AppTextStyles.sectionTitle),
+        const SizedBox(height: 10),
+
+        OpcionMenuCard(
+          icon: Icons.person_outline,
+          titulo: "Mi usuario",
+          subtitulo: "Nombre, correo y contraseña",
+          onTap: () => Navigator.pushNamed(context, "/formulario_usuario"),
+          onLongPress: () {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return const Dialog(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Text(
+                      'Esta sección permite administrar y mantener actualizada la información del usuario, incluyendo datos como su nombre, correo electrónico, contraseña y estado dentro del sistema. Desde esta sección se puede modificar la información necesaria para gestionar correctamente el acceso y los datos de la cuenta.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+
+        const SizedBox(height: 24),
+
+        Text("Negocio", style: AppTextStyles.sectionTitle),
+        const SizedBox(height: 10),
+
+        OpcionMenuCard(
+          icon: Icons.storefront_outlined,
+          titulo: "Datos de la empresa",
+          subtitulo: "Nombre, razón social, RTN, contacto y logo",
+          onTap: () => Navigator.pushNamed(context, "/formulario_empresa"),
+          onLongPress: () {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return const Dialog(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Text(
+                      'Esta sección permite administrar y mantener actualizada la información general de la empresa. Aquí se pueden consultar y modificar datos importantes como el nombre comercial, razón social, RTN, dirección, número de teléfono y correo electrónico. Esta información es utilizada dentro del sistema para identificar correctamente a la empresa y es necesaria para la generación de facturas.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+        OpcionMenuCard(
+          icon: Icons.receipt_long_outlined,
+          titulo: "Datos fiscales (CAI)",
+          subtitulo: "Autorización, rango de facturación y vigencia",
+          onTap: () =>
+              Navigator.pushNamed(context, "/formulario_datos_fiscales"),
+          onLongPress: () {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return const Dialog(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Text(
+                      'Este apartado permite administrar y mantener actualizada la información fiscal de la empresa. Aquí se pueden consultar y modificar datos importantes como vigencia del CAI (Código de Autorización de Impresión), rango autorizado y otros datos relacionados. Esta información es utilizada dentro del sistema para garantizar el cumplimiento de las obligaciones fiscales y la generación de facturas.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+
+        const SizedBox(height: 24),
+
+        Text("Aplicación", style: AppTextStyles.sectionTitle),
+        const SizedBox(height: 10),
+
+        OpcionMenuCard(
+          icon: Icons.logout,
+          titulo: "Cerrar sesión",
+          colorIcono: AppColors.error,
+          mostrarFlecha: false,
+          onTap: () {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              "/login",
+              (route) => false,
+            );
+          },
+          onLongPress: () {},
+        ),
+      ],
     );
   }
 }
