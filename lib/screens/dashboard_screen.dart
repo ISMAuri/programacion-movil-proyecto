@@ -3,6 +3,7 @@ import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 import '../widgets/estadistica_card.dart';
 import '../widgets/acceso_rapido_card.dart';
+import '../widgets/opcion_menu_card.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -41,12 +42,12 @@ class DashboardScreen extends StatelessWidget {
     ];
 
     final accesosRapidos = [
-      {
-        'color': AppColors.primary,
-        'icon': Icons.inventory_2_outlined,
-        'title': 'Ver Productos',
-        'routeName': '/listado_productos',
-      },
+      // {
+      //   'color': AppColors.primary,
+      //   'icon': Icons.inventory_2_outlined,
+      //   'title': 'Ver Productos',
+      //   'routeName': '/listado_productos',
+      // },
       {
         'color': AppColors.success,
         'icon': Icons.point_of_sale_outlined,
@@ -130,6 +131,51 @@ class DashboardScreen extends StatelessWidget {
                   icon: acceso['icon'] as IconData,
                   title: acceso['title'] as String,
                   routeName: acceso['routeName'] as String,
+                );
+              },
+            ),
+            OpcionMenuCard(
+              icon: Icons.add_shopping_cart_outlined,
+              titulo: "Nueva venta",
+              subtitulo: "Registrar una nueva venta",
+              onTap: () => Navigator.pushNamed(context, "/formulario_venta"),
+              onLongPress: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return const Dialog(
+                      child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Text(
+                          'Esta opción permite registrar una nueva venta en el sistema. Al seleccionar esta opción, se abrirá un formulario donde se podrán ingresar los detalles de la venta, incluyendo los productos vendidos, cantidades, precios y datos del cliente. Esta funcionalidad es esencial para mantener un registro actualizado de las transacciones comerciales y generar reportes de ventas precisos.',
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+
+            OpcionMenuCard(
+              icon: Icons.person_add_outlined,
+              titulo: "Nuevo cliente",
+              subtitulo: "Registrar un nuevo cliente",
+              onTap: () => Navigator.pushNamed(context, "/formulario_cliente"),
+              onLongPress: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return const Dialog(
+                      child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Text(
+                          'Esta opción permite registrar un nuevo cliente en el sistema. Al seleccionar esta opción, se abrirá un formulario donde se podrán ingresar los datos del nuevo cliente, incluyendo su nombre, dirección, número de teléfono y correo electrónico. Esta funcionalidad es esencial para mantener un registro actualizado de los clientes y facilitar la gestión de las relaciones con ellos.',
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),

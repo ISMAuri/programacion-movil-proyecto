@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:programacion_movil_proyecto/widgets/estado_badge.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 
@@ -11,6 +12,7 @@ class ClienteCard extends StatelessWidget {
     required this.telefono,
     required this.correo,
     required this.fechaRegistro,
+    required this.estado,
   });
 
   final String nombreCliente;
@@ -19,6 +21,7 @@ class ClienteCard extends StatelessWidget {
   final String telefono;
   final String correo;
   final String fechaRegistro;
+  final bool estado;
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +73,8 @@ class ClienteCard extends StatelessWidget {
             _ContactRow(icon: Icons.email_outlined, value: correo),
             const SizedBox(height: 8),
             _ContactRow(icon: Icons.location_on_outlined, value: direccion),
+            const SizedBox(height: 6),
+            EstadoBadge(estado: estado),
 
             const SizedBox(height: 10),
 

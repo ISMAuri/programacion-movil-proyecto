@@ -8,7 +8,6 @@ import 'screens/listado_productos_screen.dart';
 import 'screens/clientes_screen.dart';
 import 'screens/movimientos_screen.dart';
 import 'screens/ventas_screen.dart';
-import 'screens/configuracion_screen.dart';
 import 'screens/formulario_categoria_screen.dart';
 import 'screens/formulario_producto_screen.dart';
 import 'screens/formulario_cliente_screen.dart';
@@ -35,19 +34,16 @@ class MyApp extends StatelessWidget {
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
-        "/home": (context) =>
-            const HomeScreen(selectedIndex: 0, child: DashboardScreen()),
 
-        "/configuracion": (context) =>
-            const HomeScreen(selectedIndex: 1, child: ConfiguracionScreen()),
-        // '/home': (context) => const HomeScreen(),
+        '/home': (context) => const HomeScreen(),
+
         '/dashboard': (context) => const DashboardScreen(),
         '/categorias': (context) => const CategoriasScreen(),
         '/listado_productos': (context) => const ListadoProductosScreen(),
         '/clientes': (context) => const ClientesScreen(),
         '/movimientos': (context) => const MovimientosScreen(),
         '/ventas': (context) => const VentasScreen(),
-        // '/configuracion': (context) => const ConfiguracionScreen(),
+
         '/formulario_categoria': (context) => const FormularioCategoriaScreen(),
         '/formulario_producto': (context) => const FormularioProductoScreen(),
         '/formulario_cliente': (context) => const FormularioClienteScreen(),

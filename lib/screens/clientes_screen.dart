@@ -7,6 +7,7 @@ import '../widgets/cliente_card.dart';
 class ClientesScreen extends StatelessWidget {
   const ClientesScreen({super.key});
 
+  // Obtiene una lista de clientes
   List<Cliente> get _clientes => [
     Cliente(
       idCliente: 1,
@@ -72,12 +73,18 @@ class ClientesScreen extends StatelessWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+          backgroundColor: AppColors.success,
+          duration: const Duration(seconds: 5),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           content: Text(
             cliente == null
-                ? 'Cliente creado correctamente'
-                : 'Cliente actualizado correctamente',
+                ? 'Cliente creado correctamente.'
+                : 'Cliente actualizado correctamente.',
           ),
-          backgroundColor: AppColors.success,
         ),
       );
   }
@@ -107,6 +114,7 @@ class ClientesScreen extends StatelessWidget {
               telefono: cliente.telefono ?? 'N/A',
               correo: cliente.correo ?? 'N/A',
               fechaRegistro: _formatearFecha(cliente.fechaRegistro),
+              estado: cliente.estado,
             ),
           );
         },

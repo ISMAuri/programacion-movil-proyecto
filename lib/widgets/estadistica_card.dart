@@ -11,7 +11,7 @@ class EstadisticaCard extends StatelessWidget {
 
   const EstadisticaCard({
     super.key,
-    required this.color,
+    this.color = AppColors.primary,
     required this.icon,
     required this.title,
     required this.routeName,
@@ -22,7 +22,7 @@ class EstadisticaCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, routeName);
+        // Navigator.pushNamed(context, routeName);
       },
       child: Card(
         color: AppColors.white,
