@@ -47,7 +47,7 @@ class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
         SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
       );
 
-    Navigator.pop(context, true);
+    Navigator.pop(context, true); //Quita la pantalla y devuelve true para indicar que se guardó correctamente.
   }
 
   @override

@@ -7,8 +7,10 @@ class OpcionMenuCard extends StatelessWidget {
   final String titulo;
   final String? subtitulo;
 
-  final VoidCallback onTap;
+//Los dos callbacks 
+  final VoidCallback onTap; //se mantiene
   final VoidCallback onLongPress;
+  //final String Function() onLongPress; Si quiero que sea un callback que devuelva un String. 
 
   final Color colorIcono;
   final bool mostrarFlecha;
@@ -34,6 +36,12 @@ class OpcionMenuCard extends StatelessWidget {
         onTap: onTap,
         onLongPress: onLongPress,
         titleAlignment: ListTileTitleAlignment.center,
+        //onLongPress: () { final resultado = onLongPress();
+        //ScaffoldMessenger.of(context).showSnackBar(
+           // SnackBar(content: Text(resultado)),
+        //  );
+        //},
+        //titleAlignment: ListTileTitleAlignment.center,
 
         leading: Container(
           width: 38,

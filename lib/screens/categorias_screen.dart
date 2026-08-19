@@ -200,7 +200,9 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
           return Dismissible(
             key: ValueKey(categoria.idCategoria),
 
-            direction: DismissDirection.horizontal,
+            direction: DismissDirection.horizontal, // permite deslizar en ambas direcciones
+            //Dismissible tiene up y down, pero para una tercera acción vertical personalizada usar GestureDetector, 
+            //detectando onVerticalDragEnd, porque así puedo controlar mi propia lógica y animación.
 
             // si desliza hacia la derecha -> Editar
             background: Container(

@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 
+//Widget que muestra un badge con el estado de un elemento (activo o inactivo)
 class EstadoBadge extends StatelessWidget {
   final bool estado;
   final String textoActivo;
   final String textoInactivo;
 
-  const EstadoBadge({
+  const EstadoBadge({ //Parametro opcional con valores por defecto
     super.key,
-    required this.estado,
+    required this.estado, //es required porque sin saber si esta activo o inactivo el widget no se dibuja 
     this.textoActivo = 'Activo',
-    this.textoInactivo = 'Inactivo',
+    this.textoInactivo = 'Inactivo', //opcionales porque evita que vez que uso EstadoBadge en otra pantalla tenga que escribir ese texto de nuevo, 
+    //pero si en algún caso necesito otra palabra, lo puedo sobrescribir.
   });
 
   @override

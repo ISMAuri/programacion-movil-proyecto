@@ -45,8 +45,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
       backgroundColor: AppColors.background,
 
-      body: IndexedStack(index: _selectedIndex, children: _secciones),
-
+      body: IndexedStack(index: _selectedIndex, children: _secciones), // Mantiene el estado de cada sección mientras se navega entre ellas.
+      //Con un if: 
+      //Se pierde el estado de las pantallas, porque con if se vuelven a crear al regresar a ellas. Con IndexedStack se mantienen.
+    //el estado son los valores de los campos, scroll, textos, que el usuario ha escrito. 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _cambiarSeccion,
@@ -91,7 +93,7 @@ class Menu extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          DrawerHeader(
+          DrawerHeader( //DrawerHeader es un widget que se usa para mostrar un encabezado en el Drawer, normalmente con información del usuario o de la app.
             padding: EdgeInsets.zero,
             child: Container(
               padding: const EdgeInsets.all(20),
@@ -212,3 +214,12 @@ class Menu extends StatelessWidget {
     );
   }
 }
+
+//“La diferencia es que UserAccountsDrawerHeader está diseñado para mostrar información de un usuario, 
+//como foto, nombre y correo. Aca usamos un DrawerHeader personalizado porque queríamos mostrar la identidad de la empresa 
+//y tener más control sobre el diseño.”
+
+//Pregunta 6. 
+//Sería StatefulWidget porque el contador cambia con el tiempo. 
+//Necesito guardar el valor del contador y usar setState() cada vez que cambia para actualizarlo en pantalla. 
+//Un StatelessWidget no puede manejar ese estado por sí mismo.

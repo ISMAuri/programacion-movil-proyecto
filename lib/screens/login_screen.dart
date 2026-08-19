@@ -110,7 +110,8 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      Navigator.pushNamedAndRemoveUntil(
+                      Navigator.pushNamedAndRemoveUntil( //Cambio y borro el historial, 
+                      //aca voy al home_screen.dart, y borro el historial para que no pueda volver a la pantalla de login.
                         context,
                         '/home',
                         (route) => false,
