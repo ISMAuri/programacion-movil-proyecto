@@ -1,3 +1,5 @@
+// Anterior Modelo de Categoria
+
 class Categoria {
   final int idCategoria;
   final String nombreCategoria;

@@ -1,3 +1,5 @@
+// Modelo de Usuario Anterior
+
 class Usuario {
   final int idUsuario;
   final int idEmpresa;
