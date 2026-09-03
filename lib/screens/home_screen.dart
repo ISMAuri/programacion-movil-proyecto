@@ -4,6 +4,7 @@ import '../config/app_text_styles.dart';
 import 'dashboard_screen.dart';
 import 'listado_productos_screen.dart';
 import 'configuracion_screen.dart';
+import '../services/storage_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,10 +46,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
       backgroundColor: AppColors.background,
 
-      body: IndexedStack(index: _selectedIndex, children: _secciones), // Mantiene el estado de cada sección mientras se navega entre ellas.
-      //Con un if: 
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _secciones,
+      ), // Mantiene el estado de cada sección mientras se navega entre ellas.
+      //Con un if:
       //Se pierde el estado de las pantallas, porque con if se vuelven a crear al regresar a ellas. Con IndexedStack se mantienen.
-    //el estado son los valores de los campos, scroll, textos, que el usuario ha escrito. 
+      //el estado son los valores de los campos, scroll, textos, que el usuario ha escrito.
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _cambiarSeccion,
@@ -93,7 +97,8 @@ class Menu extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          DrawerHeader( //DrawerHeader es un widget que se usa para mostrar un encabezado en el Drawer, normalmente con información del usuario o de la app.
+          DrawerHeader(
+            //DrawerHeader es un widget que se usa para mostrar un encabezado en el Drawer, normalmente con información del usuario o de la app.
             padding: EdgeInsets.zero,
             child: Container(
               padding: const EdgeInsets.all(20),
@@ -201,7 +206,11 @@ class Menu extends StatelessWidget {
               'Cerrar sesión',
               style: TextStyle(color: AppColors.error),
             ),
-            onTap: () {
+            onTap: () async {
+              await StorageService().deleteToken();
+
+              if (!context.mounted) return;
+              
               Navigator.pushNamedAndRemoveUntil(
                 context,
                 "/login",

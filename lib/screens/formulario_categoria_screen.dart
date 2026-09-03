@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
-import '../models/categoria_model.dart';
+import '../models/categoria.dart';
+import '../services/categoria_service.dart';
 
 class FormularioCategoriaScreen extends StatefulWidget {
   const FormularioCategoriaScreen({super.key});
@@ -15,12 +16,13 @@ class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
   late final TextEditingController _nombreController;
   late final TextEditingController _descripcionController;
   Categoria? _categoria;
+  final CategoriaService _categoriaService = CategoriaService();
   bool _activo = true;
   bool _argumentosCargados = false;
 
   bool get _esEdicion => _categoria != null;
 
-  void _guardarCategoria() {
+  Future<void> _guardarCategoria() async {
     final nombre = _nombreController.text.trim();
     final descripcion = _descripcionController.text.trim();
 
@@ -36,8 +38,60 @@ class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
         ..showSnackBar(
           SnackBar(content: Text(mensaje), backgroundColor: AppColors.error),
         );
+
       return;
     }
+
+    try {
+      if (_esEdicion) {
+        final categoriaActualizada = Categoria(
+          id: _categoria!.id,
+          nombre: nombre,
+          descripcion: descripcion,
+          icono: _categoria!.icono,
+          activo: _activo,
+        );
+
+        await _categoriaService.putCategoria(
+          _categoria!.id!,
+          categoriaActualizada,
+        );
+      } else {
+        final nuevaCategoria = Categoria(
+          nombre: nombre,
+          descripcion: descripcion,
+          icono: null,
+          activo: _activo,
+        );
+
+        await _categoriaService.postCategoria(nuevaCategoria);
+      }
+
+      if (!mounted) return;
+
+      final mensaje =
+          "Categoría ${_esEdicion ? "actualizada" : "creada"} correctamente";
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
+        );
+
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Error al ${_esEdicion ? "actualizar" : "crear"} categoría: $e',
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+
     final mensaje =
         "Categoría ${_esEdicion ? "actualizada" : "creada"} correctamente";
 
@@ -47,7 +101,10 @@ class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
         SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
       );
 
-    Navigator.pop(context, true); //Quita la pantalla y devuelve true para indicar que se guardó correctamente.
+    Navigator.pop(
+      context,
+      true,
+    ); //Quita la pantalla y devuelve true para indicar que se guardó correctamente.
   }
 
   @override
@@ -67,9 +124,9 @@ class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
     _categoria = ModalRoute.of(context)?.settings.arguments as Categoria?;
 
     if (_categoria != null) {
-      _nombreController.text = _categoria!.nombreCategoria;
+      _nombreController.text = _categoria!.nombre;
       _descripcionController.text = _categoria!.descripcion ?? '';
-      _activo = _categoria!.estado;
+      _activo = _categoria!.activo;
     }
   }
 

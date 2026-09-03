@@ -1,9 +1,55 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
+import '../models/login_request.dart';
+import '../services/auth_service.dart';
+import '../services/storage_service.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  bool loading = false;
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  Future<void> login() async {
+    try {
+      setState(() {
+        loading = true;
+      });
+
+      final request = LoginRequest(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      final response = await AuthService().login(request);
+
+      // Persistimos el token para que ApiClient lo adjunto en proximos requests
+      await StorageService().saveToken(response.accessToken);
+
+      if (!mounted) return;
+
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Bienvenido ${response.user.fullName}'), backgroundColor: AppColors.success),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Correo o contraseña incorrectos'), backgroundColor: AppColors.error),
+      );
+    } finally {
+      setState(() {
+        loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,8 +101,9 @@ class LoginScreen extends StatelessWidget {
                 const SizedBox(height: 30),
 
                 TextField(
+                  controller: emailController,
                   decoration: InputDecoration(
-                    labelText: "Usuario",
+                    labelText: "Correo",
                     prefixIcon: Icon(
                       Icons.person_outline,
                       color: AppColors.primary,
@@ -75,6 +122,7 @@ class LoginScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 TextField(
+                  controller: passwordController,
                   obscureText: true,
 
                   decoration: InputDecoration(
@@ -110,20 +158,17 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      Navigator.pushNamedAndRemoveUntil( //Cambio y borro el historial, 
-                      //aca voy al home_screen.dart, y borro el historial para que no pueda volver a la pantalla de login.
-                        context,
-                        '/home',
-                        (route) => false,
-                      );
+                      loading ? null : login();
                     },
-                    child: const Text(
-                      "Ingresar",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: loading
+                        ? const CircularProgressIndicator()
+                        : const Text(
+                            "Ingresar",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ],

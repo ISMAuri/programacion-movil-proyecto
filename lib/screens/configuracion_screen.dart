@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 import '../widgets/opcion_menu_card.dart';
+import '../services/storage_service.dart';
 
 class ConfiguracionScreen extends StatelessWidget {
   const ConfiguracionScreen({super.key});
@@ -105,7 +106,11 @@ class ConfiguracionScreen extends StatelessWidget {
           titulo: "Cerrar sesión",
           colorIcono: AppColors.error,
           mostrarFlecha: false,
-          onTap: () {
+          onTap: ()  async {
+              await StorageService().deleteToken();
+
+              if (!context.mounted) return;
+
             Navigator.pushNamedAndRemoveUntil(
               context,
               "/login",

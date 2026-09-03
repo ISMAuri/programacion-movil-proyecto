@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../config/app_text_styles.dart';
 import '../config/app_colors.dart';
-import '../models/categoria_model.dart';
+import '../models/categoria.dart';
 import '../widgets/categoria_card.dart';
+import '../services/categoria_service.dart';
 
 class CategoriasScreen extends StatefulWidget {
   const CategoriasScreen({super.key});
@@ -13,42 +14,83 @@ class CategoriasScreen extends StatefulWidget {
 
 // Lista de categorías de ejemplo
 class _CategoriasScreenState extends State<CategoriasScreen> {
-  final List<Categoria> categorias = [
-    Categoria(
-      idCategoria: 1,
-      nombreCategoria: "Lácteos",
-      descripcion: "Leche, quesos, yogurt y derivados",
-      estado: true,
-    ),
-    Categoria(
-      idCategoria: 2,
-      nombreCategoria: "Cereales",
-      descripcion: "Arroz, avena, granos y harinas",
-      estado: true,
-    ),
-    Categoria(
-      idCategoria: 3,
-      nombreCategoria: "Proteínas",
-      descripcion: "Huevos, carnes y embutidos",
-      estado: true,
-    ),
-    Categoria(
-      idCategoria: 4,
-      nombreCategoria: "Bebidas",
-      descripcion: "Jugos, gaseosas y bebidas alcohólicas",
-      estado: false,
-    ),
-    Categoria(
-      idCategoria: 5,
-      nombreCategoria: "Postres",
-      descripcion: "Galletas, dulces y repostería",
-      estado: true,
-    ),
-  ];
+  final CategoriaService _categoriaService = CategoriaService();
+  // Categoria(
+  //   idCategoria: 1,
+  //   nombreCategoria: "Lácteos",
+  //   descripcion: "Leche, quesos, yogurt y derivados",
+  //   estado: true,
+  // ),
+  // Categoria(
+  //   idCategoria: 2,
+  //   nombreCategoria: "Cereales",
+  //   descripcion: "Arroz, avena, granos y harinas",
+  //   estado: true,
+  // ),
+  // Categoria(
+  //   idCategoria: 3,
+  //   nombreCategoria: "Proteínas",
+  //   descripcion: "Huevos, carnes y embutidos",
+  //   estado: true,
+  // ),
+  List<Categoria> categorias = [];
 
-  // ids de categorías favoritas
-  final Set<int> categoriasFavoritas = {};
-  
+  final _nombreController = TextEditingController();
+  final _descripcionController = TextEditingController();
+
+  bool cargando = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarCategorias();
+  }
+
+  Future<void> _cargarCategorias() async {
+    final response = await _categoriaService.getCategorias(soloActivas: false);
+
+    try {
+      setState(() {
+        categorias = response;
+        cargando = false;
+      });
+    } catch (e) {
+      setState(() => cargando = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error al cargar categorías")));
+      setState(() {
+        cargando = false;
+      });
+    }
+  }
+
+  Future<void> guardarCategoria() async {
+    final categoria = Categoria(
+      nombre: _nombreController.text.trim(),
+      descripcion: _descripcionController.text.trim(),
+      icono: null,
+    );
+
+    try {
+      await _categoriaService.postCategoria(categoria);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Categoría creada correctamente')),
+      );
+
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al crear categoría')));
+    }
+  }
+
   // acciones sobre las categorías
   void _abrirFormularioEdicion(BuildContext context, Categoria categoria) {
     Navigator.pushNamed(context, '/formulario_categoria', arguments: categoria);
@@ -57,27 +99,11 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
   void _eliminarCategoria(Categoria categoria) {
     setState(() {
       categorias.remove(categoria);
-      categoriasFavoritas.remove(categoria.idCategoria);
-    });
-  }
-
-  void _cambiarFavorito(Categoria categoria) {
-    final id = categoria.idCategoria;
-
-    setState(() {
-      if (categoriasFavoritas.contains(id)) {
-        categoriasFavoritas.remove(id);
-      } else {
-        categoriasFavoritas.add(id);
-      }
     });
   }
 
   // formulario enbottomsheet para agregar una nueva categoria
   void _mostrarFormularioCategoria(BuildContext context) {
-    final nombreController = TextEditingController();
-    final descripcionController = TextEditingController();
-
     bool estado = true;
 
     showModalBottomSheet(
@@ -105,7 +131,7 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
                   const SizedBox(height: 20),
 
                   TextField(
-                    controller: nombreController,
+                    controller: _nombreController,
                     decoration: const InputDecoration(
                       labelText: "Nombre",
                       border: OutlineInputBorder(),
@@ -115,7 +141,7 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
                   const SizedBox(height: 15),
 
                   TextField(
-                    controller: descripcionController,
+                    controller: _descripcionController,
                     decoration: const InputDecoration(
                       labelText: "Descripción",
                       border: OutlineInputBorder(),
@@ -147,19 +173,20 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        if (nombreController.text.trim().isEmpty) {
+                        if (_nombreController.text.trim().isEmpty) {
                           return;
                         }
 
                         final nuevaCategoria = Categoria(
-                          idCategoria: categorias.length + 1,
-                          nombreCategoria: nombreController.text.trim(),
-                          descripcion: descripcionController.text.trim(),
-                          estado: estado,
+                          nombre: _nombreController.text.trim(),
+                          descripcion: _descripcionController.text.trim(),
+                          activo: estado,
                         );
-
+  
                         setState(() {
-                          categorias.add(nuevaCategoria);
+                          _categoriaService.postCategoria(nuevaCategoria).then((categoriaCreada) {
+                            categorias.add(categoriaCreada);
+                          });
                         });
 
                         Navigator.pop(context);
@@ -187,120 +214,112 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
 
       backgroundColor: AppColors.background,
 
-      body: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        itemCount: categorias.length,
-        itemBuilder: (context, index) {
-          final categoria = categorias[index];
+      body: cargando
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              itemCount: categorias.length,
+              itemBuilder: (context, index) {
+                final categoria = categorias[index];
 
-          final esFavorita = categoriasFavoritas.contains(
-            categoria.idCategoria,
-          );
+                return Dismissible(
+                  key: ValueKey(categoria.id),
 
-          return Dismissible(
-            key: ValueKey(categoria.idCategoria),
+                  direction: DismissDirection
+                      .horizontal, // permite deslizar en ambas direcciones
+                  //Dismissible tiene up y down, pero para una tercera acción vertical personalizada usar GestureDetector,
+                  //detectando onVerticalDragEnd, porque así puedo controlar mi propia lógica y animación.
 
-            direction: DismissDirection.horizontal, // permite deslizar en ambas direcciones
-            //Dismissible tiene up y down, pero para una tercera acción vertical personalizada usar GestureDetector, 
-            //detectando onVerticalDragEnd, porque así puedo controlar mi propia lógica y animación.
-
-            // si desliza hacia la derecha -> Editar
-            background: Container(
-              color: Colors.green,
-              alignment: Alignment.centerLeft,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: const Row(
-                children: [
-                  Icon(Icons.edit, color: Colors.white),
-                  SizedBox(width: 8),
-                  Text(
-                    "Editar",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                  // si desliza hacia la derecha -> Editar
+                  background: Container(
+                    color: Colors.green,
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.edit, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text(
+                          "Editar",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
 
-            // si desliza hacia la izquierda -> Eliminar
-            secondaryBackground: Container(
-              color: Colors.red,
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    "Eliminar",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                  // si desliza hacia la izquierda -> Eliminar
+                  secondaryBackground: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          "Eliminar",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(Icons.delete, color: Colors.white),
+                      ],
                     ),
                   ),
-                  SizedBox(width: 8),
-                  Icon(Icons.delete, color: Colors.white),
-                ],
-              ),
-            ),
 
-            confirmDismiss: (direction) async {
-              // si desliza hacia la derecha
-              if (direction == DismissDirection.startToEnd) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Editando ${categoria.nombreCategoria}"),
+                  confirmDismiss: (direction) async {
+                    // si desliza hacia la derecha
+                    if (direction == DismissDirection.startToEnd) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Editando ${categoria.nombre}")),
+                      );
+
+                      _abrirFormularioEdicion(context, categoria);
+
+                      // No desaparece el item
+                      return false;
+                    }
+
+                    // si desliza hacia la izquierda
+                    if (direction == DismissDirection.endToStart) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("${categoria.nombre} eliminada"),
+                        ),
+                      );
+
+                      // Permitir que desaparezca
+                      return true;
+                    }
+
+                    return false;
+                  },
+
+                  // que se elimne hasta que termine el deslizamiento
+                  onDismissed: (direction) {
+                    if (direction == DismissDirection.endToStart) {
+                      _eliminarCategoria(categoria);
+                    }
+                  },
+
+                  child: _CategoriaItem(
+                    categoria: categoria,
+
+                    onTap: () {
+                      _abrirFormularioEdicion(context, categoria);
+                    },
+
+                    onEliminar: () {
+                      _eliminarCategoria(categoria);
+                    },
                   ),
                 );
-
-                _abrirFormularioEdicion(context, categoria);
-
-                // No desaparece el item
-                return false;
-              }
-
-              // si desliza hacia la izquierda
-              if (direction == DismissDirection.endToStart) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("${categoria.nombreCategoria} eliminada"),
-                  ),
-                );
-
-                // Permitir que desaparezca
-                return true;
-              }
-
-              return false;
-            },
-
-            // que se elimne hasta que termine el deslizamiento
-            onDismissed: (direction) {
-              if (direction == DismissDirection.endToStart) {
-                _eliminarCategoria(categoria);
-              }
-            },
-
-            child: _CategoriaItem(
-              categoria: categoria,
-              esFavorita: esFavorita,
-
-              onTap: () {
-                _abrirFormularioEdicion(context, categoria);
-              },
-
-              onEliminar: () {
-                _eliminarCategoria(categoria);
-              },
-
-              onFavorito: () {
-                _cambiarFavorito(categoria);
               },
             ),
-          );
-        },
-      ),
 
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -324,17 +343,13 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
 // Widget reutilizable para cada categoría
 class _CategoriaItem extends StatelessWidget {
   final Categoria categoria;
-  final bool esFavorita;
   final VoidCallback onTap;
   final VoidCallback onEliminar;
-  final VoidCallback onFavorito;
 
   const _CategoriaItem({
     required this.categoria,
-    required this.esFavorita,
     required this.onTap,
     required this.onEliminar,
-    required this.onFavorito,
   });
 
   @override
@@ -354,7 +369,7 @@ class _CategoriaItem extends StatelessWidget {
               title: const Text("Eliminar categoría"),
               content: Text(
                 "¿Estás seguro de que deseas eliminar "
-                "\"${categoria.nombreCategoria}\"?",
+                "\"${categoria.nombre}\"?",
               ),
               actions: [
                 TextButton(
@@ -371,9 +386,7 @@ class _CategoriaItem extends StatelessWidget {
                     onEliminar();
 
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("${categoria.nombreCategoria} eliminada"),
-                      ),
+                      SnackBar(content: Text("${categoria.nombre} eliminada")),
                     );
                   },
                   child: const Text("Eliminar"),
@@ -387,21 +400,9 @@ class _CategoriaItem extends StatelessWidget {
       child: Stack(
         children: [
           CategoriaCard(
-            nombre: categoria.nombreCategoria,
+            nombre: categoria.nombre,
             descripcion: categoria.descripcion ?? "",
-            activo: categoria.estado,
-          ),
-
-          Positioned(
-            right: 8,
-            top: 8,
-            child: IconButton(
-              onPressed: onFavorito,
-              icon: Icon(
-                esFavorita ? Icons.favorite : Icons.favorite_border,
-                color: esFavorita ? Colors.red : null,
-              ),
-            ),
+            activo: categoria.activo,
           ),
         ],
       ),
