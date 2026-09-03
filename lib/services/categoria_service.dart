@@ -24,14 +24,9 @@ class CategoriaService {
   }
 
   Future<Categoria> putCategoria(int id, Categoria categoria) async {
-    final response = await ApiClient().dio.put(
+    final response = await _apiClient.dio.put(
       '/categorias/$id',
-      data: {
-        'nombre': categoria.nombre,
-        'descripcion': categoria.descripcion,
-        'icono': categoria.icono,
-        'activo': categoria.activo,
-      },
+      data: categoria.toJson(),
     );
 
     return Categoria.fromJson(response.data);
