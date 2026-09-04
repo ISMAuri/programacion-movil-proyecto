@@ -30,6 +30,8 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
   }
 
   Future<void> _cargarCategorias() async {
+    
+    setState(() => cargando = true);
     try {
       final response = await _categoriaService.getCategorias(
         soloActivas: false,
@@ -197,6 +199,13 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
         title: const Text("Categorías", style: AppTextStyles.screenTitle),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
+                actions: [
+          IconButton(
+            onPressed: _cargarCategorias,
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Actualizar categorias',
+          ),
+        ],
       ),
 
       backgroundColor: AppColors.background,

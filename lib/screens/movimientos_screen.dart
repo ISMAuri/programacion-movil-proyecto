@@ -27,6 +27,7 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
   bool cargando = true;
 
   Future<void> _cargarMovimientos() async {
+    setState(() => cargando = true);
     try {
       final response = await _movimientoInventarioService.getMovimientos();
 
@@ -75,6 +76,13 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
         title: const Text("Movimientos", style: AppTextStyles.screenTitle),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
+        actions: [
+          IconButton(
+            onPressed: _cargarMovimientos,
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Actualizar movimientos',
+          ),
+        ],
       ),
       backgroundColor: AppColors.background,
       body: cargando
@@ -102,7 +110,8 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                       producto?.nombreProducto ??
                       'Producto ${movimiento.idProducto}',
 
-                  encargado: user?.fullName ?? 'Usuario ${movimiento.idUsuario}',
+                  encargado:
+                      user?.fullName ?? 'Usuario ${movimiento.idUsuario}',
                 );
               },
             ),

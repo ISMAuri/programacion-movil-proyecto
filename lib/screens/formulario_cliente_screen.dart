@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
-import '../models/cliente_model.dart';
+import '../models/cliente.dart';
+import '../services/cliente_service.dart';
 
 class FormularioClienteScreen extends StatefulWidget {
   const FormularioClienteScreen({super.key});
@@ -12,6 +13,7 @@ class FormularioClienteScreen extends StatefulWidget {
 }
 
 class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
+  final ClienteService _clienteService = ClienteService();
   final _nombreController = TextEditingController();
   final _rtnController = TextEditingController();
   final _direccionController = TextEditingController();
@@ -43,38 +45,68 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
     }
   }
 
-  void _guardarCliente() {
+  Future<void> _guardarCliente() async {
     final nombre = _nombreController.text.trim();
     final rtn = _rtnController.text.trim();
     final direccion = _direccionController.text.trim();
     final telefono = _telefonoController.text.trim();
     final correo = _correoController.text.trim();
 
-    if (nombre.isEmpty ||
-        rtn.isEmpty ||
-        direccion.isEmpty ||
-        telefono.isEmpty ||
-        correo.isEmpty) {
-      _mostrarError('Completa todos los campos del cliente');
+    if (nombre.isEmpty) {
+      _mostrarError('Ingresa el nombre del cliente');
       return;
     }
 
-    if (!correo.contains('@') || !correo.contains('.')) {
+    if (correo.isNotEmpty && (!correo.contains('@') || !correo.contains('.'))) {
       _mostrarError('Ingresa un correo electrónico válido');
       return;
     }
-    
-    Navigator.pop(context, true);
+
+    final cliente = Cliente(
+      idCliente: _cliente?.idCliente,
+      nombreCliente: nombre,
+      rtn: rtn.isEmpty ? null : rtn,
+      direccion: direccion.isEmpty ? null : direccion,
+      telefono: telefono.isEmpty ? null : telefono,
+      correo: correo.isEmpty ? null : correo,
+      estado: _estado,
+      fechaRegistro: _cliente?.fechaRegistro ?? DateTime.now()
+    );
+
+    try {
+      if (_esEdicion) {
+        await _clienteService.putCliente(_cliente!.idCliente!, cliente);
+      } else {
+        await _clienteService.postCliente(cliente);
+      }
+
+      if (!mounted) return;
+
+      final mensaje = _esEdicion
+          ? 'Cliente actualizado correctamente'
+          : 'Cliente creado correctamente';
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
+        );
+
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+
+      _mostrarError(
+        'Error al ${_esEdicion ? "actualizar" : "crear"} cliente: $e',
+      );
+    }
   }
 
   void _mostrarError(String mensaje) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(mensaje),
-          backgroundColor: AppColors.error,
-        ),
+        SnackBar(content: Text(mensaje), backgroundColor: AppColors.error),
       );
   }
 
@@ -167,9 +199,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
             child: ElevatedButton.icon(
               onPressed: _guardarCliente,
               icon: Icon(_esEdicion ? Icons.save_outlined : Icons.add),
-              label: Text(
-                _esEdicion ? 'Guardar cambios' : 'Crear cliente',
-              ),
+              label: Text(_esEdicion ? 'Guardar cambios' : 'Crear cliente'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.white,

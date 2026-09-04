@@ -1,55 +1,47 @@
 import 'package:flutter/material.dart';
 import '../config/app_text_styles.dart';
 import '../config/app_colors.dart';
-import '../models/cliente_model.dart';
+import '../models/cliente.dart';
 import '../widgets/cliente_card.dart';
+import '../services/cliente_service.dart';
 
-class ClientesScreen extends StatelessWidget {
+class ClientesScreen extends StatefulWidget {
   const ClientesScreen({super.key});
 
-  // Obtiene una lista de clientes
-  List<Cliente> get _clientes => [
-    Cliente(
-      idCliente: 1,
-      nombreCliente: 'Ana Gómez',
-      rtn: '0801-1990-12345',
-      direccion: 'Col. Palmira, Tegucigalpa',
-      telefono: '9988-7766',
-      correo: 'ana.gomez@email.com',
-      fechaRegistro: DateTime(2025, 1, 12),
-      estado: true,
-    ),
-    Cliente(
-      idCliente: 2,
-      nombreCliente: 'Distribuidora El Sol S.A.',
-      rtn: '0801-2015-67890',
-      direccion: 'Blvd. Morazán, Tegucigalpa',
-      telefono: '2234-5566',
-      correo: 'contacto@elsol.hn',
-      fechaRegistro: DateTime(2025, 6, 3),
-      estado: true,
-    ),
-    Cliente(
-      idCliente: 3,
-      nombreCliente: 'Roberto Suazo',
-      rtn: '0501-1985-54321',
-      direccion: 'Barrio Los Andes, Comayagua',
-      telefono: '9911-2233',
-      correo: 'r.suazo@email.com',
-      fechaRegistro: DateTime(2026, 3, 20),
-      estado: false,
-    ),
-    Cliente(
-      idCliente: 4,
-      nombreCliente: 'Mini Market La Esquina',
-      rtn: '0801-2020-11223',
-      direccion: 'Col. Kennedy, Tegucigalpa',
-      telefono: '2245-9900',
-      correo: 'laesquina@market.hn',
-      fechaRegistro: DateTime(2026, 7, 15),
-      estado: true,
-    ),
-  ];
+  @override
+  State<ClientesScreen> createState() => _ClientesScreenState();
+}
+
+class _ClientesScreenState extends State<ClientesScreen> {
+  final ClienteService _clienteService = ClienteService();
+  bool cargando = true;
+  List<Cliente> _clientes = [];
+
+  Future<void> _cargarClientes() async {
+    setState(() => cargando = true);
+    try {
+      final response = await _clienteService.getClientes(soloActivos: false);
+
+      if (!mounted) return;
+      setState(() {
+        _clientes = response;
+        cargando = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error al cargar clientes: $e")));
+
+      setState(() => cargando = false);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarClientes();
+  }
 
   String _formatearFecha(DateTime fecha) {
     final dia = fecha.day.toString().padLeft(2, '0');
@@ -87,6 +79,7 @@ class ClientesScreen extends StatelessWidget {
           ),
         ),
       );
+    _cargarClientes();
   }
 
   @override
@@ -96,29 +89,40 @@ class ClientesScreen extends StatelessWidget {
         title: const Text('Clientes', style: AppTextStyles.screenTitle),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
+        actions: [
+          IconButton(
+            onPressed: _cargarClientes,
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Actualizar clientes',
+          ),
+        ],
       ),
       backgroundColor: AppColors.background,
-      body: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        itemCount: _clientes.length,
-        itemBuilder: (context, index) {
-          final cliente = _clientes[index];
+      body: cargando
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              itemCount: _clientes.length,
+              itemBuilder: (context, index) {
+                final cliente = _clientes[index];
 
-          return GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => _abrirFormulario(context, cliente: cliente),
-            child: ClienteCard(
-              nombreCliente: cliente.nombreCliente,
-              rtn: cliente.rtn ?? 'N/A',
-              direccion: cliente.direccion ?? 'N/A',
-              telefono: cliente.telefono ?? 'N/A',
-              correo: cliente.correo ?? 'N/A',
-              fechaRegistro: _formatearFecha(cliente.fechaRegistro),
-              estado: cliente.estado,
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _abrirFormulario(context, cliente: cliente),
+                  child: ClienteCard(
+                    nombreCliente: cliente.nombreCliente,
+                    rtn: cliente.rtn ?? 'N/A',
+                    direccion: cliente.direccion ?? 'N/A',
+                    telefono: cliente.telefono ?? 'N/A',
+                    correo: cliente.correo ?? 'N/A',
+                    fechaRegistro: cliente.fechaRegistro != null
+                        ? _formatearFecha(cliente.fechaRegistro!)
+                        : 'N/A',
+                    estado: cliente.estado,
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _abrirFormulario(context),
         backgroundColor: AppColors.secondary,
