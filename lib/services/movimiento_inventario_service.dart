@@ -5,7 +5,7 @@ class MovimientoInventarioService {
   final ApiClient _apiClient = ApiClient();
 
   Future<List<MovimientoInventario>> getMovimientos() async {
-    final response = await _apiClient.dio.get('/movimientos_inventario');
+    final response = await _apiClient.dio.get('/movimientos-inventario');
 
     final List<dynamic> data = response.data;
 

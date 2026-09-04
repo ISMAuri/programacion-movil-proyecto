@@ -2,9 +2,71 @@ import 'package:flutter/material.dart';
 import '../config/app_text_styles.dart';
 import '../config/app_colors.dart';
 import '../widgets/movimiento_card.dart';
+import '../models/movimiento_inventario.dart';
+import '../services/movimiento_inventario_service.dart';
+import '../services/auth_service.dart';
+import '../models/producto.dart';
+import '../models/user.dart';
+import '../services/producto_service.dart';
 
-class MovimientosScreen extends StatelessWidget {
+class MovimientosScreen extends StatefulWidget {
   const MovimientosScreen({super.key});
+
+  @override
+  State<MovimientosScreen> createState() => _MovimientosScreenState();
+}
+
+class _MovimientosScreenState extends State<MovimientosScreen> {
+  final MovimientoInventarioService _movimientoInventarioService =
+      MovimientoInventarioService();
+  final ProductoService _productoService = ProductoService();
+  final AuthService _authService = AuthService();
+  List<MovimientoInventario> movimientos = [];
+  Map<int, Producto> productos = {};
+  Map<int, User> usuarios = {};
+  bool cargando = true;
+
+  Future<void> _cargarMovimientos() async {
+    try {
+      final response = await _movimientoInventarioService.getMovimientos();
+
+      for (final movimiento in response) {
+        // obtener producto respectivo al movimiento
+        if (!productos.containsKey(movimiento.idProducto)) {
+          final producto = await _productoService.getProducto(
+            movimiento.idProducto,
+          );
+
+          productos[movimiento.idProducto] = producto;
+        }
+
+        // obtener usuario respectivo al movimiento
+        if (!usuarios.containsKey(movimiento.idUsuario)) {
+          final usuario = await _authService.getUser(movimiento.idUsuario);
+
+          usuarios[movimiento.idUsuario] = usuario;
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        movimientos = response;
+        cargando = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error al cargar los movimientos $e")),
+      );
+      setState(() => cargando = false);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarMovimientos();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,52 +77,35 @@ class MovimientosScreen extends StatelessWidget {
         foregroundColor: AppColors.white,
       ),
       backgroundColor: AppColors.background,
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        children: const [
-          MovimientoCard(
-            tipoMovimiento: "Entrada",
-            cantidad: 20,
-            fechaMovimiento: "05/08/2026",
-            motivo: "Compra a proveedor",
-            producto: "Leche Entera 1L",
-            encargado: "Carlos Martínez",
-          ),
-          // salida por venta
-          MovimientoCard(
-            tipoMovimiento: "Salida",
-            cantidad: 5,
-            fechaMovimiento: "06/08/2026",
-            motivo: "Venta en mostrador",
-            producto: "Arroz 2 lbs",
-            encargado: "María Fernández",
-          ),
-          MovimientoCard(
-            tipoMovimiento: "Salida",
-            cantidad: 3,
-            fechaMovimiento: "07/08/2026",
-            motivo: "Producto dañado",
-            producto: "Huevos Docena",
-            encargado: "Carlos Martínez",
-          ),
-          MovimientoCard(
-            tipoMovimiento: "Entrada",
-            cantidad: 50,
-            fechaMovimiento: "08/08/2026",
-            motivo: "Reposición de stock",
-            producto: "Vino Tinto 750ml",
-            encargado: "José Reyes",
-          ),
-          MovimientoCard(
-            tipoMovimiento: "Salida",
-            cantidad: 2,
-            fechaMovimiento: "09/08/2026",
-            motivo: "Ajuste de inventario",
-            producto: "Galletas de Chocolate Pack de 6",
-            encargado: "María Fernández",
-          ),
-        ],
-      ),
+      body: cargando
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              itemCount: movimientos.length,
+              itemBuilder: (context, index) {
+                final movimiento = movimientos[index];
+
+                final producto = productos[movimiento.idProducto];
+                final user = usuarios[movimiento.idUsuario];
+
+                return MovimientoCard(
+                  tipoMovimiento: movimiento.tipoMovimiento.name,
+
+                  cantidad: movimiento.cantidad,
+
+                  fechaMovimiento:
+                      movimiento.fechaMovimiento?.toString() ?? 'Sin fecha',
+
+                  motivo: movimiento.motivo ?? 'Sin motivo',
+
+                  producto:
+                      producto?.nombreProducto ??
+                      'Producto ${movimiento.idProducto}',
+
+                  encargado: user?.fullName ?? 'Usuario ${movimiento.idUsuario}',
+                );
+              },
+            ),
     );
   }
 }

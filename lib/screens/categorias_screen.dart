@@ -15,24 +15,7 @@ class CategoriasScreen extends StatefulWidget {
 // Lista de categorías de ejemplo
 class _CategoriasScreenState extends State<CategoriasScreen> {
   final CategoriaService _categoriaService = CategoriaService();
-  // Categoria(
-  //   idCategoria: 1,
-  //   nombreCategoria: "Lácteos",
-  //   descripcion: "Leche, quesos, yogurt y derivados",
-  //   estado: true,
-  // ),
-  // Categoria(
-  //   idCategoria: 2,
-  //   nombreCategoria: "Cereales",
-  //   descripcion: "Arroz, avena, granos y harinas",
-  //   estado: true,
-  // ),
-  // Categoria(
-  //   idCategoria: 3,
-  //   nombreCategoria: "Proteínas",
-  //   descripcion: "Huevos, carnes y embutidos",
-  //   estado: true,
-  // ),
+
   List<Categoria> categorias = [];
 
   final _nombreController = TextEditingController();
@@ -47,21 +30,23 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
   }
 
   Future<void> _cargarCategorias() async {
-    final response = await _categoriaService.getCategorias(soloActivas: false);
-
     try {
+      final response = await _categoriaService.getCategorias(
+        soloActivas: false,
+      );
+
+      if (!mounted) return;
       setState(() {
         categorias = response;
         cargando = false;
       });
     } catch (e) {
-      setState(() => cargando = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Error al cargar categorías")));
-      setState(() {
-        cargando = false;
-      });
+
+      setState(() => cargando = false);
     }
   }
 
@@ -182,9 +167,11 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
                           descripcion: _descripcionController.text.trim(),
                           activo: estado,
                         );
-  
+
                         setState(() {
-                          _categoriaService.postCategoria(nuevaCategoria).then((categoriaCreada) {
+                          _categoriaService.postCategoria(nuevaCategoria).then((
+                            categoriaCreada,
+                          ) {
                             categorias.add(categoriaCreada);
                           });
                         });
