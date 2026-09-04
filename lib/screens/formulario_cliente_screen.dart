@@ -97,7 +97,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
       if (!mounted) return;
 
       _mostrarError(
-        'Error al ${_esEdicion ? "actualizar" : "crear"} cliente: $e',
+        'Error al ${_esEdicion ? "actualizar" : "crear"} cliente',
       );
     }
   }

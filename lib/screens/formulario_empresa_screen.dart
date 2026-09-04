@@ -88,7 +88,7 @@ class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al actualizar datos de la empresa: $e'),
+        SnackBar(content: Text('Error al actualizar datos de la empresa'),
           backgroundColor: AppColors.error,),
       );
     }

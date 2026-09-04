@@ -85,7 +85,7 @@ class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Error al ${_esEdicion ? "actualizar" : "crear"} categoría: $e',
+            'Error al ${_esEdicion ? "actualizar" : "crear"} categoría',
           ),
           backgroundColor: AppColors.error,
         ),

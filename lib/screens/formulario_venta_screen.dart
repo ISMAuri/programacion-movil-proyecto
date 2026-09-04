@@ -717,7 +717,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
                 Expanded(
                   child: Text(titulo, style: AppTextStyles.sectionTitle),
                 ),
-                if (accion != null) accion,
+                ?accion,
               ],
             ),
             const SizedBox(height: 14),

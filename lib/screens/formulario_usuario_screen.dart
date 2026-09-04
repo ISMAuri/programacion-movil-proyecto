@@ -127,8 +127,9 @@ class _FormularioUsuarioScreenState extends State<FormularioUsuarioScreen> {
                               if (valor == null || valor.trim().isEmpty) {
                                 return "Ingresa tu correo";
                               }
-                              if (!valor.contains("@"))
+                              if (!valor.contains("@")) {
                                 return "Correo inválido";
+                              }
                               return null;
                             },
                           ),
