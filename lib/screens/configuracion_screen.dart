@@ -25,7 +25,7 @@ class ConfiguracionScreen extends StatelessWidget {
         OpcionMenuCard(
           icon: Icons.person_outline,
           titulo: "Mi usuario",
-          subtitulo: "Nombre, correo y contraseña",
+          subtitulo: "Nombre y correo electrónico de la cuenta",
           onTap: () => Navigator.pushNamed(context, "/formulario_usuario"),
           onLongPress: () {
             showDialog(
