@@ -565,6 +565,13 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
               const SizedBox(height: 12),
               _campoBloqueado('Rango autorizado', _rangoMostrado),
               const SizedBox(height: 12),
+              _campoBloqueado(
+                'Fecha de autorización',
+                _soloLectura
+                    ? _fecha(_venta!.fechaAutorizacionFactura)
+                    : _fecha(_autorizacionActiva!.fechaAutorizacion),
+              ),
+              const SizedBox(height: 12),
               _campoBloqueado('Fecha límite de emisión', _fechaLimiteMostrada),
               // Los siguientes campos se habilitarán
               // cuando se implemente la validación

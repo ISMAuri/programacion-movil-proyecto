@@ -15,6 +15,7 @@ class Venta {
   final String caiFactura;
   final String rangoInicialFactura;
   final String rangoFinalFactura;
+  final DateTime fechaAutorizacionFactura;
   final DateTime fechaLimiteEmisionFactura;
 
   final String empresaNombreFactura;
@@ -70,6 +71,7 @@ class Venta {
     required this.caiFactura,
     required this.rangoInicialFactura,
     required this.rangoFinalFactura,
+    required this.fechaAutorizacionFactura,
     required this.fechaLimiteEmisionFactura,
     required this.empresaNombreFactura,
     this.empresaRazonSocialFactura,
@@ -122,6 +124,9 @@ class Venta {
       caiFactura: json['cai_factura'] ?? '',
       rangoInicialFactura: json['rango_inicial_factura'] ?? '',
       rangoFinalFactura: json['rango_final_factura'] ?? '',
+      fechaAutorizacionFactura: DateTime.parse(
+        json['fecha_autorizacion_factura'],
+      ),
       fechaLimiteEmisionFactura: DateTime.parse(
         json['fecha_limite_emision_factura'],
       ),
