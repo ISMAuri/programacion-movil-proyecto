@@ -19,7 +19,7 @@ class Venta {
 
   final String empresaNombreFactura;
   final String? empresaRazonSocialFactura;
-  final String empresaRtnFactura;
+  final String? empresaRtnFactura;
   final String empresaDireccionFactura;
   final String? empresaTelefonoFactura;
   final String? empresaCorreoFactura;
@@ -55,7 +55,7 @@ class Venta {
 
   final String totalLetras;
 
-  final String? estadoPago;
+  final bool estadoFactura;
   final String? metodoPago;
   final String? rutaPdfFactura;
 
@@ -73,7 +73,7 @@ class Venta {
     required this.fechaLimiteEmisionFactura,
     required this.empresaNombreFactura,
     this.empresaRazonSocialFactura,
-    required this.empresaRtnFactura,
+    this.empresaRtnFactura,
     required this.empresaDireccionFactura,
     this.empresaTelefonoFactura,
     this.empresaCorreoFactura,
@@ -102,7 +102,7 @@ class Venta {
     required this.totalIsv18,
     required this.total,
     required this.totalLetras,
-    this.estadoPago,
+    required this.estadoFactura,
     this.metodoPago,
     this.rutaPdfFactura,
   });
@@ -164,7 +164,7 @@ class Venta {
 
       totalLetras: json['total_letras'] ?? '',
 
-      estadoPago: json['estado_pago'],
+      estadoFactura: jsonToBool(json['estado_factura']),
       metodoPago: json['metodo_pago'],
       rutaPdfFactura: json['ruta_pdf_factura'],
     );

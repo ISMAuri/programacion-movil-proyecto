@@ -1,72 +1,22 @@
 import 'package:flutter/material.dart';
+
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
-import '../models/cliente_model.dart';
-import '../models/detalle_venta_model.dart';
-import '../models/producto_model.dart';
-import '../models/venta_model.dart';
 
-final List<Cliente> _clientes = [
-  Cliente(
-    idCliente: 1,
-    nombreCliente: 'Consumidor Final',
-    rtn: null,
-    direccion: null,
-    telefono: null,
-    correo: null,
-    fechaRegistro: DateTime(2026, 1, 1),
-    estado: true,
-  ),
-  Cliente(
-    idCliente: 2,
-    nombreCliente: 'Comercial El Progreso S. de R.L.',
-    rtn: '08019000000000',
-    direccion: 'El Progreso',
-    telefono: '9999-0001',
-    correo: 'ventas@elprogreso.hn',
-    fechaRegistro: DateTime(2026, 1, 2),
-    estado: true,
-  ),
-];
+import '../models/autorizacion_factura.dart';
+import '../models/cliente.dart';
+import '../models/crear_venta_request.dart';
+import '../models/detalle_venta.dart';
+import '../models/detalle_venta_request.dart';
+import '../models/producto.dart';
+import '../models/venta.dart';
 
-final List<Producto> _productos = [
-  const Producto(
-    idProducto: 1,
-    idCategoria: 1,
-    nombreProducto: 'Aceite vegetal 1 L',
-    codigoProducto: 'ALI-001',
-    precioCompra: 75,
-    precioVenta: 100,
-    stockActual: 30,
-    unidadMedida: 'Unidad',
-    tasaImpuesto: 15,
-    estado: true,
-  ),
-  const Producto(
-    idProducto: 2,
-    idCategoria: 2,
-    nombreProducto: 'Pan francés (docena)',
-    codigoProducto: 'PAN-001',
-    precioCompra: 50,
-    precioVenta: 70,
-    stockActual: 20,
-    unidadMedida: 'Docena',
-    tasaImpuesto: 0,
-    estado: true,
-  ),
-  const Producto(
-    idProducto: 3,
-    idCategoria: 3,
-    nombreProducto: 'Bebida gaseosa',
-    codigoProducto: 'BEB-001',
-    precioCompra: 18,
-    precioVenta: 25,
-    stockActual: 50,
-    unidadMedida: 'Unidad',
-    tasaImpuesto: 15,
-    estado: true,
-  ),
-];
+import '../services/auth_service.dart';
+import '../services/autorizacion_factura_service.dart';
+import '../services/cliente_service.dart';
+import '../services/detalle_venta_service.dart';
+import '../services/producto_service.dart';
+import '../services/venta_service.dart';
 
 const List<String> _metodosPago = [
   'Efectivo',
@@ -80,16 +30,21 @@ class _LineaVenta {
   int cantidad;
   double descuento;
 
-  // ignore: unused_element_parameter
   _LineaVenta({this.producto, this.cantidad = 1, this.descuento = 0});
 
   double get importeBruto => (producto?.precioVenta ?? 0) * cantidad;
+
   double get subtotal =>
       (importeBruto - descuento).clamp(0, double.infinity).toDouble();
+
   double get impuesto => subtotal * ((producto?.tasaImpuesto ?? 0) / 100);
-  double get baseExenta => producto?.tasaImpuesto == 0 ? subtotal : 0;
+
+  double get baseTasaCero => producto?.tasaImpuesto == 0 ? subtotal : 0;
+
   double get baseGravada => (producto?.tasaImpuesto ?? 0) > 0 ? subtotal : 0;
+
   double get isv15 => producto?.tasaImpuesto == 15 ? impuesto : 0;
+
   double get isv18 => producto?.tasaImpuesto == 18 ? impuesto : 0;
 }
 
@@ -102,16 +57,33 @@ class FormularioVentaScreen extends StatefulWidget {
 
 class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
   final _formKey = GlobalKey<FormState>();
-  // correspondiente para clientes exentos y exonerados.
-  // final _ordenExentaController = TextEditingController();
-  // final _constanciaExoneradosController = TextEditingController();
-  // final _registroSagController = TextEditingController();
+
+  final ClienteService _clienteService = ClienteService();
+  final ProductoService _productoService = ProductoService();
+  final VentaService _ventaService = VentaService();
+  final AuthService _authService = AuthService();
+  final AutorizacionFacturaService _autorizacionFacturaService =
+      AutorizacionFacturaService();
+  final DetalleVentaService _detalleVentaService = DetalleVentaService();
+
+  final int _idEmpresa = 1;
 
   Venta? _venta;
+  AutorizacionFactura? _autorizacionActiva;
+
   Cliente? _clienteSeleccionado;
+  int? _idUsuarioActual;
+
+  List<Cliente> _clientes = [];
+  List<Producto> _productos = [];
+  List<DetalleVenta> _detallesLectura = [];
+  final List<_LineaVenta> _lineas = [_LineaVenta()];
+
   String _metodoPago = _metodosPago.first;
   DateTime _fechaVenta = DateTime.now();
-  List<_LineaVenta> _lineas = [_LineaVenta()];
+
+  bool cargando = true;
+  bool guardando = false;
   bool _argumentosCargados = false;
 
   bool get _soloLectura => _venta != null;
@@ -119,73 +91,97 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
     if (_argumentosCargados) return;
     _argumentosCargados = true;
+
     _venta = ModalRoute.of(context)?.settings.arguments as Venta?;
 
     final venta = _venta;
-    if (venta == null) return;
 
-    _metodoPago = venta.metodoPago ?? _metodosPago.first;
-    _fechaVenta = venta.fechaVenta;
+    if (venta != null) {
+      _metodoPago = venta.metodoPago ?? _metodosPago.first;
+      _fechaVenta = venta.fechaVenta;
+    }
 
-    _clienteSeleccionado = Cliente(
-      idCliente: venta.idCliente,
-      nombreCliente: venta.clienteNombreFactura,
-      rtn: venta.clienteRtnFactura,
-      direccion: venta.clienteDireccionFactura,
-      telefono: venta.clienteTelefonoFactura,
-      correo: venta.clienteCorreoFactura,
-      fechaRegistro: venta.fechaVenta,
-      estado: true,
-    );
-
-    _lineas = venta.detalles.map((detalle) {
-      return _LineaVenta(
-        producto: Producto(
-          idProducto: detalle.idProducto,
-          idCategoria: 0,
-          nombreProducto: detalle.productoNombreFactura,
-          descripcion: detalle.productoDescripcionFactura,
-          codigoProducto: detalle.productoCodigoFactura,
-          precioVenta: detalle.precioUnitario,
-          stockActual: detalle.cantidad,
-          unidadMedida: detalle.productoUnidadMedidaFactura,
-          tasaImpuesto: detalle.productoTasaImpuestoFactura,
-          estado: true,
-        ),
-        cantidad: detalle.cantidad,
-        descuento: detalle.descuento,
-      );
-    }).toList();
-
-    if (_lineas.isEmpty) _lineas = [_LineaVenta()];
+    _cargarDatos();
   }
 
-  @override
-  void dispose() {
-    // _ordenExentaController.dispose();
-    // _constanciaExoneradosController.dispose();
-    // _registroSagController.dispose();
-    super.dispose();
+  Future<void> _cargarDatos() async {
+    try {
+      if (_soloLectura) {
+        final venta = _venta!;
+
+        final detalles = await _detalleVentaService.getDetallesPorVenta(
+          venta.idVenta,
+        );
+
+        if (!mounted) return;
+
+        setState(() {
+          _detallesLectura = detalles;
+          cargando = false;
+        });
+
+        return;
+      }
+
+      final clientes = await _clienteService.getClientes(soloActivos: true);
+
+      final productos = await _productoService.getProductos(soloActivos: true);
+
+      final usuario = await _authService.getCurrentUser();
+
+      final autorizacion = await _autorizacionFacturaService
+          .getAutorizacionActivaEmpresa(_idEmpresa);
+
+      if (!mounted) return;
+
+      setState(() {
+        _clientes = clientes;
+        _productos = productos
+            .where((producto) => producto.estado && producto.stockActual > 0)
+            .toList();
+
+        _idUsuarioActual = usuario.id;
+        _autorizacionActiva = autorizacion;
+
+        cargando = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        cargando = false;
+      });
+
+      _mensaje('Error al cargar los datos de la venta: $e');
+    }
   }
 
   double get _subtotal =>
       _lineas.fold(0, (total, linea) => total + linea.subtotal);
+
   double get _totalDescuentos =>
       _lineas.fold(0, (total, linea) => total + linea.descuento);
-  double get _totalExento =>
-      _lineas.fold(0, (total, linea) => total + linea.baseExenta);
+
+  double get _totalTasaCero =>
+      _lineas.fold(0, (total, linea) => total + linea.baseTasaCero);
+
   double get _totalGravado15 => _lineas
       .where((linea) => linea.producto?.tasaImpuesto == 15)
       .fold(0, (total, linea) => total + linea.baseGravada);
+
   double get _totalGravado18 => _lineas
       .where((linea) => linea.producto?.tasaImpuesto == 18)
       .fold(0, (total, linea) => total + linea.baseGravada);
+
   double get _totalIsv15 =>
       _lineas.fold(0, (total, linea) => total + linea.isv15);
+
   double get _totalIsv18 =>
       _lineas.fold(0, (total, linea) => total + linea.isv18);
+
   double get _total => _subtotal + _totalIsv15 + _totalIsv18;
 
   String _lps(double valor) => 'L. ${valor.toStringAsFixed(2)}';
@@ -193,114 +189,211 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
   String _fecha(DateTime fecha) {
     final dia = fecha.day.toString().padLeft(2, '0');
     final mes = fecha.month.toString().padLeft(2, '0');
+
     return '$dia/$mes/${fecha.year}';
   }
 
-  Future<void> _seleccionarFecha() async {
-    final fecha = await showDatePicker(
-      context: context,
-      initialDate: _fechaVenta,
-      firstDate: DateTime(2026, 7, 12),
-      lastDate: DateTime(2027, 7, 12),
-    );
-    if (fecha != null) setState(() => _fechaVenta = fecha);
+  String _formatearNumeroFactura(int correlativo) {
+    final autorizacion = _autorizacionActiva;
+
+    if (autorizacion == null) {
+      return 'No disponible';
+    }
+
+    return '${autorizacion.establecimiento}-'
+        '${autorizacion.puntoEmision}-'
+        '${autorizacion.tipoDocumento}-'
+        '${correlativo.toString().padLeft(8, '0')}';
   }
 
-  void _agregarLinea() => setState(() => _lineas.add(_LineaVenta()));
+  String get _numeroFacturaMostrado {
+    final venta = _venta;
+
+    if (venta != null) {
+      return venta.numeroFactura;
+    }
+
+    final autorizacion = _autorizacionActiva;
+
+    if (autorizacion == null) {
+      return 'No disponible';
+    }
+
+    return _formatearNumeroFactura(autorizacion.siguienteCorrelativo);
+  }
+
+  String get _rangoMostrado {
+    final venta = _venta;
+
+    if (venta != null) {
+      return '${venta.rangoInicialFactura} al '
+          '${venta.rangoFinalFactura}';
+    }
+
+    final autorizacion = _autorizacionActiva;
+
+    if (autorizacion == null) {
+      return 'No disponible';
+    }
+
+    return '${_formatearNumeroFactura(autorizacion.rangoInicial)} '
+        'al '
+        '${_formatearNumeroFactura(autorizacion.rangoFinal)}';
+  }
+
+  String get _caiMostrado {
+    if (_venta != null) {
+      return _venta!.caiFactura;
+    }
+
+    return _autorizacionActiva?.cai ?? 'No disponible';
+  }
+
+  String get _fechaLimiteMostrada {
+    if (_venta != null) {
+      return _fecha(_venta!.fechaLimiteEmisionFactura);
+    }
+
+    final autorizacion = _autorizacionActiva;
+
+    if (autorizacion == null) {
+      return 'No disponible';
+    }
+
+    return _fecha(autorizacion.fechaLimiteEmision);
+  }
+
+  void _agregarLinea() {
+    setState(() {
+      _lineas.add(_LineaVenta());
+    });
+  }
 
   void _eliminarLinea(int index) {
     if (_lineas.length == 1) return;
-    setState(() => _lineas.removeAt(index));
+
+    setState(() {
+      _lineas.removeAt(index);
+    });
   }
 
-  void _registrarVenta() {
+  List<Producto> _productosDisponiblesParaLinea(int index) {
+    final idsSeleccionados = _lineas
+        .asMap()
+        .entries
+        .where(
+          (entry) =>
+              entry.key != index && entry.value.producto?.idProducto != null,
+        )
+        .map((entry) => entry.value.producto!.idProducto)
+        .toSet();
+
+    return _productos
+        .where((producto) => !idsSeleccionados.contains(producto.idProducto))
+        .toList();
+  }
+
+  Future<void> _registrarVenta() async {
     if (!_formKey.currentState!.validate() || _clienteSeleccionado == null) {
       _mensaje('Completa los datos obligatorios de la venta');
       return;
     }
+
     if (_lineas.any((linea) => linea.producto == null)) {
       _mensaje('Selecciona un producto en cada línea');
       return;
     }
 
-    const correlativo = 1;
-    const numeroFactura = '000-001-01-00000001';
-    final cliente = _clienteSeleccionado!;
+    final idsProductos = _lineas
+        .map((linea) => linea.producto!.idProducto)
+        .toList();
 
-    final detalles = _lineas.map((linea) {
+    if (idsProductos.toSet().length != idsProductos.length) {
+      _mensaje('No puedes agregar el mismo producto más de una vez');
+      return;
+    }
+
+    if (_idUsuarioActual == null || _autorizacionActiva == null) {
+      _mensaje('No se pudo obtener el usuario o la autorización fiscal activa');
+      return;
+    }
+
+    for (final linea in _lineas) {
       final producto = linea.producto!;
-      return DetalleVenta(
-        idVenta: 0,
-        idProducto: producto.idProducto ?? 0,
-        productoCodigoFactura: producto.codigoProducto,
-        productoNombreFactura: producto.nombreProducto,
-        productoDescripcionFactura: producto.descripcion,
-        productoUnidadMedidaFactura: producto.unidadMedida,
-        productoTasaImpuestoFactura: producto.tasaImpuesto,
-        cantidad: linea.cantidad,
-        precioUnitario: producto.precioVenta,
-        descuento: linea.descuento,
-        subtotal: linea.subtotal,
-        baseGravada: linea.baseGravada,
-        baseExenta: linea.baseExenta,
-        montoImpuesto: linea.impuesto,
-      );
-    }).toList();
 
-    final nuevaVenta = Venta(
-      idCliente: cliente.idCliente,
-      idUsuario: 1,
-      usuarioNombreFactura: 'Administrador',
-      idAutorizacion: 1,
-      numeroFactura: numeroFactura,
-      correlativo: correlativo,
-      caiFactura: '3C18C3-8C69E3-1BE5E0-63BE03-0909BF-A0',
-      rangoInicialFactura: '000-001-01-00000001',
-      rangoFinalFactura: '000-001-01-00005000',
-      fechaLimiteEmisionFactura: DateTime(2027, 7, 12),
-      empresaNombreFactura: 'Inversiones Sammy',
-      empresaRazonSocialFactura: 'Inversiones Sammy',
-      empresaRtnFactura: '01079016892580',
-      empresaDireccionFactura:
-          'Los Fuertes contiguo al Super Olguita, Roatan, Islas de la Bahia',
-      empresaTelefonoFactura: '97547973',
-      empresaCorreoFactura: 'inversionesammy2019@hotmail.com',
-      clienteNombreFactura: cliente.nombreCliente,
-      clienteRtnFactura: cliente.rtn,
-      clienteDireccionFactura: cliente.direccion,
-      clienteTelefonoFactura: cliente.telefono,
-      clienteCorreoFactura: cliente.correo,
-      // Se mantienen nulos hasta implementar la validación de exoneraciones.
+      if (linea.cantidad > producto.stockActual) {
+        _mensaje(
+          'Stock insuficiente para '
+          '${producto.nombreProducto}',
+        );
+        return;
+      }
+    }
+
+    final request = CrearVentaRequest(
+      idCliente: _clienteSeleccionado!.idCliente,
+      idUsuario: _idUsuarioActual!,
+      idAutorizacion: _autorizacionActiva!.idAutorizacion!,
+      metodoPago: _metodoPago,
       ordenCompraExenta: null,
       constanciaRegistroExonerados: null,
       registroSag: null,
-      fechaVenta: _fechaVenta,
-      subtotal: _subtotal,
-      totalDescuentos: _totalDescuentos,
-      totalExento: _totalExento,
-      totalGravado15: _totalGravado15,
-      totalGravado18: _totalGravado18,
-      totalIsv15: _totalIsv15,
-      totalIsv18: _totalIsv18,
-      total: _total,
-      totalLetras: '${_total.toStringAsFixed(2)} LEMPIRAS',
-      metodoPago: _metodoPago,
-      detalles: detalles,
+      detalles: _lineas.map((linea) {
+        return DetalleVentaRequest(
+          idProducto: linea.producto!.idProducto!,
+          cantidad: linea.cantidad,
+          descuento: linea.descuento,
+        );
+      }).toList(),
     );
 
-    Navigator.pop(context, nuevaVenta);
+    try {
+      setState(() {
+        guardando = true;
+      });
+
+      await _ventaService.postVenta(request);
+
+      if (!mounted) return;
+
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        guardando = false;
+      });
+
+      _mensaje('Error al registrar la venta: $e');
+    }
   }
 
   Future<void> _anularFactura() async {
     final venta = _venta;
-    if (venta == null || !venta.estadoFactura) return;
+
+    if (venta == null || !venta.estadoFactura) {
+      return;
+    }
+
+    final diasTranscurridos = DateTime.now()
+        .difference(venta.fechaVenta)
+        .inDays;
+
+    if (diasTranscurridos >= 30) {
+      _mensaje(
+        'La factura ya no puede anularse porque han pasado 30 días desde su emisión',
+      );
+      return;
+    }
 
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Anular factura'),
         content: Text(
-          '¿Deseas anular la factura ${venta.numeroFactura}? Esta acción no permite editar sus datos.',
+          '¿Deseas anular la factura '
+          '${venta.numeroFactura}? '
+          'Esta acción devolverá los productos al inventario.',
         ),
         actions: [
           TextButton(
@@ -319,53 +412,29 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
       ),
     );
 
-    if (!mounted || confirmar != true) return;
-    Navigator.pop(context, _conEstado(venta, false));
-  }
+    if (!mounted || confirmar != true) {
+      return;
+    }
 
-  Venta _conEstado(Venta venta, bool estado) {
-    return Venta(
-      idVenta: venta.idVenta,
-      idCliente: venta.idCliente,
-      idUsuario: venta.idUsuario,
-      usuarioNombreFactura: venta.usuarioNombreFactura,
-      idAutorizacion: venta.idAutorizacion,
-      numeroFactura: venta.numeroFactura,
-      correlativo: venta.correlativo,
-      caiFactura: venta.caiFactura,
-      rangoInicialFactura: venta.rangoInicialFactura,
-      rangoFinalFactura: venta.rangoFinalFactura,
-      fechaLimiteEmisionFactura: venta.fechaLimiteEmisionFactura,
-      empresaNombreFactura: venta.empresaNombreFactura,
-      empresaRazonSocialFactura: venta.empresaRazonSocialFactura,
-      empresaRtnFactura: venta.empresaRtnFactura,
-      empresaDireccionFactura: venta.empresaDireccionFactura,
-      empresaTelefonoFactura: venta.empresaTelefonoFactura,
-      empresaCorreoFactura: venta.empresaCorreoFactura,
-      empresaLogoFactura: venta.empresaLogoFactura,
-      clienteNombreFactura: venta.clienteNombreFactura,
-      clienteRtnFactura: venta.clienteRtnFactura,
-      clienteDireccionFactura: venta.clienteDireccionFactura,
-      clienteTelefonoFactura: venta.clienteTelefonoFactura,
-      clienteCorreoFactura: venta.clienteCorreoFactura,
-      ordenCompraExenta: venta.ordenCompraExenta,
-      constanciaRegistroExonerados: venta.constanciaRegistroExonerados,
-      registroSag: venta.registroSag,
-      fechaVenta: venta.fechaVenta,
-      subtotal: venta.subtotal,
-      totalDescuentos: venta.totalDescuentos,
-      totalExento: venta.totalExento,
-      totalExonerado: venta.totalExonerado,
-      totalGravado15: venta.totalGravado15,
-      totalGravado18: venta.totalGravado18,
-      totalIsv15: venta.totalIsv15,
-      totalIsv18: venta.totalIsv18,
-      total: venta.total,
-      totalLetras: venta.totalLetras,
-      estadoFactura: estado,
-      metodoPago: venta.metodoPago,
-      detalles: venta.detalles,
-    );
+    try {
+      setState(() {
+        guardando = true;
+      });
+
+      await _ventaService.anularVenta(venta.idVenta);
+
+      if (!mounted) return;
+
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        guardando = false;
+      });
+
+      _mensaje('Error al anular la factura: $e');
+    }
   }
 
   void _mensaje(String texto) {
@@ -388,13 +457,16 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
       ),
-      body: _buildFormulario(),
-      bottomNavigationBar: _buildAccionInferior(),
+      body: cargando
+          ? const Center(child: CircularProgressIndicator())
+          : _buildFormulario(),
+      bottomNavigationBar: cargando ? null : _buildAccionInferior(),
     );
   }
 
   Widget _buildFormulario() {
     final venta = _venta;
+
     return Form(
       key: _formKey,
       child: ListView(
@@ -407,105 +479,106 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
           _card(
             titulo: 'Datos de la venta',
             children: [
-              DropdownButtonFormField<Cliente>(
-                initialValue: _clienteSeleccionado,
-                isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Cliente',
-                  prefixIcon: Icon(Icons.person_outline),
-                ),
-                items:
-                    (_soloLectura
-                            ? [_clienteSeleccionado!]
-                            : _clientes
-                                  .where((cliente) => cliente.estado)
-                                  .toList())
-                        .map(
-                          (cliente) => DropdownMenuItem(
-                            value: cliente,
-                            child: Text(
-                              cliente.nombreCliente,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+              if (_soloLectura)
+                _campoBloqueado(
+                  'Cliente',
+                  venta!.clienteNombreFactura,
+                  icono: Icons.person_outline,
+                )
+              else
+                DropdownButtonFormField<Cliente>(
+                  initialValue: _clienteSeleccionado,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Cliente',
+                    prefixIcon: Icon(Icons.person_outline),
+                  ),
+                  items: _clientes
+                      .where((cliente) => cliente.estado)
+                      .map(
+                        (cliente) => DropdownMenuItem(
+                          value: cliente,
+                          child: Text(
+                            cliente.nombreCliente,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        )
-                        .toList(),
-                onChanged: _soloLectura
-                    ? null
-                    : (cliente) =>
-                          setState(() => _clienteSeleccionado = cliente),
-                validator: (cliente) =>
-                    cliente == null ? 'Selecciona un cliente' : null,
-              ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (cliente) {
+                    setState(() {
+                      _clienteSeleccionado = cliente;
+                    });
+                  },
+                  validator: (cliente) =>
+                      cliente == null ? 'Selecciona un cliente' : null,
+                ),
               const SizedBox(height: 14),
               _campoBloqueado(
                 'Número de factura',
-                venta?.numeroFactura ?? '000-001-01-00000001',
+                _numeroFacturaMostrado,
+                icono: Icons.receipt_long_outlined,
               ),
               const SizedBox(height: 14),
-              InkWell(
-                onTap: _soloLectura ? null : _seleccionarFecha,
-                child: InputDecorator(
+              _campoBloqueado(
+                'Fecha de venta',
+                _fecha(_fechaVenta),
+                icono: Icons.calendar_today_outlined,
+              ),
+              const SizedBox(height: 14),
+              if (_soloLectura)
+                _campoBloqueado(
+                  'Método de pago',
+                  venta!.metodoPago ?? 'No especificado',
+                  icono: Icons.payments_outlined,
+                )
+              else
+                DropdownButtonFormField<String>(
+                  initialValue: _metodoPago,
                   decoration: const InputDecoration(
-                    labelText: 'Fecha de venta',
-                    prefixIcon: Icon(Icons.calendar_today_outlined),
+                    labelText: 'Método de pago',
+                    prefixIcon: Icon(Icons.payments_outlined),
                   ),
-                  child: Text(_fecha(_fechaVenta)),
+                  items: _metodosPago
+                      .map(
+                        (metodo) => DropdownMenuItem(
+                          value: metodo,
+                          child: Text(metodo),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (metodo) {
+                    if (metodo == null) return;
+
+                    setState(() {
+                      _metodoPago = metodo;
+                    });
+                  },
                 ),
-              ),
-              const SizedBox(height: 14),
-              DropdownButtonFormField<String>(
-                initialValue: _metodoPago,
-                decoration: const InputDecoration(
-                  labelText: 'Método de pago',
-                  prefixIcon: Icon(Icons.payments_outlined),
-                ),
-                items: _metodosPago
-                    .map(
-                      (metodo) =>
-                          DropdownMenuItem(value: metodo, child: Text(metodo)),
-                    )
-                    .toList(),
-                onChanged: _soloLectura
-                    ? null
-                    : (metodo) => setState(() => _metodoPago = metodo!),
-              ),
             ],
           ),
           const SizedBox(height: 16),
           _card(
             titulo: 'Datos fiscales',
             children: [
-              _campoBloqueado(
-                'CAI',
-                venta?.caiFactura ?? '3C18C3-8C69E3-1BE5E0-63BE03-0909BF-A0',
-              ),
+              _campoBloqueado('CAI', _caiMostrado),
               const SizedBox(height: 12),
-              _campoBloqueado(
-                'Rango autorizado',
-                venta == null
-                    ? '000-001-01-00000001 al 000-001-01-00005000'
-                    : '${venta.rangoInicialFactura} al ${venta.rangoFinalFactura}',
-              ),
+              _campoBloqueado('Rango autorizado', _rangoMostrado),
               const SizedBox(height: 12),
-              _campoBloqueado(
-                'Fecha límite de emisión',
-                venta == null
-                    ? '12/07/2027'
-                    : _fecha(venta.fechaLimiteEmisionFactura),
-              ),
-              // Los siguientes campos se habilitarán cuando exista una
-              // validación para ventas exentas o exoneradas:
-              // const SizedBox(height: 12),
-              // TextFormField(label: 'Orden de compra exenta'),
-              // TextFormField(label: 'Constancia de registro de exonerados'),
-              // TextFormField(label: 'Registro SAG'),
+              _campoBloqueado('Fecha límite de emisión', _fechaLimiteMostrada),
+              // Los siguientes campos se habilitarán
+              // cuando se implemente la validación
+              // de ventas exentas o exoneradas:
+              //
+              // Orden de compra exenta
+              // Constancia de registro de exonerados
+              // Registro SAG
             ],
           ),
           const SizedBox(height: 16),
-          _buildProductosEditables(),
+          _soloLectura ? _buildDetallesLectura() : _buildProductosEditables(),
           const SizedBox(height: 16),
-          venta == null ? _buildResumenNuevo() : _buildResumenLectura(venta),
+          _soloLectura ? _buildResumenLectura(venta!) : _buildResumenNuevo(),
           const SizedBox(height: 20),
         ],
       ),
@@ -515,13 +588,11 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
   Widget _buildProductosEditables() {
     return _card(
       titulo: 'Productos',
-      accion: _soloLectura
-          ? null
-          : TextButton.icon(
-              onPressed: _agregarLinea,
-              icon: const Icon(Icons.add),
-              label: const Text('Agregar'),
-            ),
+      accion: TextButton.icon(
+        onPressed: _lineas.length < _productos.length ? _agregarLinea : null,
+        icon: const Icon(Icons.add),
+        label: const Text('Agregar'),
+      ),
       children: [
         for (int index = 0; index < _lineas.length; index++) ...[
           _lineaEditable(index),
@@ -533,6 +604,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
 
   Widget _lineaEditable(int index) {
     final linea = _lineas[index];
+
     return Column(
       children: [
         Row(
@@ -542,39 +614,35 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
                 initialValue: linea.producto,
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Producto'),
-                items:
-                    (_soloLectura
-                            ? <Producto>[
-                                if (linea.producto != null) linea.producto!,
-                              ]
-                            : _productos
-                                  .where((producto) => producto.estado)
-                                  .toList())
-                        .map(
-                          (producto) => DropdownMenuItem(
-                            value: producto,
-                            child: Text(
-                              '${producto.nombreProducto} · ${_lps(producto.precioVenta)}',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        )
-                        .toList(),
-                onChanged: _soloLectura
-                    ? null
-                    : (producto) => setState(() => linea.producto = producto),
+                items: _productosDisponiblesParaLinea(index)
+                    .map(
+                      (producto) => DropdownMenuItem(
+                        value: producto,
+                        child: Text(
+                          '${producto.nombreProducto} · '
+                          '${_lps(producto.precioVenta)}',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (producto) {
+                  setState(() {
+                    linea.producto = producto;
+                    linea.cantidad = 1;
+                  });
+                },
                 validator: (producto) =>
                     producto == null ? 'Selecciona un producto' : null,
               ),
             ),
-            if (!_soloLectura)
-              IconButton(
-                onPressed: _lineas.length == 1
-                    ? null
-                    : () => _eliminarLinea(index),
-                icon: const Icon(Icons.delete_outline),
-                color: AppColors.error,
-              ),
+            IconButton(
+              onPressed: _lineas.length == 1
+                  ? null
+                  : () => _eliminarLinea(index),
+              icon: const Icon(Icons.delete_outline),
+              color: AppColors.error,
+            ),
           ],
         ),
         const SizedBox(height: 10),
@@ -582,22 +650,77 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
           children: [
             const Text('Cantidad'),
             IconButton(
-              onPressed: !_soloLectura && linea.cantidad > 1
-                  ? () => setState(() => linea.cantidad--)
+              onPressed: linea.cantidad > 1
+                  ? () {
+                      setState(() {
+                        linea.cantidad--;
+                      });
+                    }
                   : null,
               icon: const Icon(Icons.remove_circle_outline),
             ),
             Text('${linea.cantidad}', style: AppTextStyles.cardTitle),
             IconButton(
-              onPressed: _soloLectura
-                  ? null
-                  : () => setState(() => linea.cantidad++),
+              onPressed:
+                  linea.producto != null &&
+                      linea.cantidad < linea.producto!.stockActual
+                  ? () {
+                      setState(() {
+                        linea.cantidad++;
+                      });
+                    }
+                  : null,
               icon: const Icon(Icons.add_circle_outline),
             ),
             const Spacer(),
             Text(_lps(linea.subtotal), style: AppTextStyles.price),
           ],
         ),
+        if (linea.producto != null)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Stock disponible: '
+              '${linea.producto!.stockActual}',
+              style: AppTextStyles.subtitle.copyWith(fontSize: 12),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildDetallesLectura() {
+    return _card(
+      titulo: 'Productos',
+      children: [
+        if (_detallesLectura.isEmpty)
+          const Text('No hay detalles asociados a esta factura.')
+        else
+          for (int index = 0; index < _detallesLectura.length; index++) ...[
+            _detalleLectura(_detallesLectura[index]),
+            if (index != _detallesLectura.length - 1) const Divider(height: 28),
+          ],
+      ],
+    );
+  }
+
+  Widget _detalleLectura(DetalleVenta detalle) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(detalle.productoNombreFactura, style: AppTextStyles.cardTitle),
+        const SizedBox(height: 8),
+        _dato('Código', detalle.productoCodigoFactura),
+        _dato('Unidad', detalle.productoUnidadMedidaFactura),
+        _dato('Cantidad', detalle.cantidad.toString()),
+        _dato('Precio unitario', _lps(detalle.precioUnitario)),
+        _dato('Descuento', _lps(detalle.descuento)),
+        _dato(
+          'Tasa de impuesto',
+          '${detalle.productoTasaImpuestoFactura.toStringAsFixed(2)}%',
+        ),
+        _dato('Monto de impuesto', _lps(detalle.montoImpuesto)),
+        _dato('Subtotal', _lps(detalle.subtotal)),
       ],
     );
   }
@@ -608,7 +731,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
       children: [
         _filaTotal('Subtotal', _subtotal),
         _filaTotal('Descuentos', _totalDescuentos),
-        _filaTotal('Exento', _totalExento),
+        _filaTotal('Tasa 0%', _totalTasaCero),
         _filaTotal('Gravado 15%', _totalGravado15),
         _filaTotal('Gravado 18%', _totalGravado18),
         _filaTotal('ISV 15%', _totalIsv15),
@@ -627,6 +750,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
         _filaTotal('Descuentos', venta.totalDescuentos),
         _filaTotal('Exento', venta.totalExento),
         _filaTotal('Exonerado', venta.totalExonerado),
+        _filaTotal('Tasa 0%', venta.totalTasaCero),
         _filaTotal('Gravado 15%', venta.totalGravado15),
         _filaTotal('Gravado 18%', venta.totalGravado18),
         _filaTotal('ISV 15%', venta.totalIsv15),
@@ -641,6 +765,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
 
   Widget _estadoFactura(Venta venta) {
     final color = venta.estadoFactura ? AppColors.success : AppColors.error;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -665,7 +790,13 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
 
   Widget _buildAccionInferior() {
     final venta = _venta;
+
     final anulada = venta != null && !venta.estadoFactura;
+
+    final fueraPlazo =
+        venta != null &&
+        DateTime.now().difference(venta.fechaVenta).inDays >= 30;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
       color: AppColors.white,
@@ -674,13 +805,21 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
         child: SizedBox(
           height: 50,
           child: ElevatedButton.icon(
-            onPressed: _soloLectura
-                ? (anulada ? null : _anularFactura)
+            onPressed: guardando
+                ? null
+                : _soloLectura
+                ? (anulada || fueraPlazo ? null : _anularFactura)
                 : _registrarVenta,
             icon: Icon(_soloLectura ? Icons.block : Icons.point_of_sale),
             label: Text(
-              _soloLectura
-                  ? (anulada ? 'Factura anulada' : 'Anular factura')
+              guardando
+                  ? 'Procesando...'
+                  : _soloLectura
+                  ? anulada
+                        ? 'Factura anulada'
+                        : fueraPlazo
+                        ? 'Plazo de anulación vencido'
+                        : 'Anular factura'
                   : 'Registrar venta',
             ),
             style: ElevatedButton.styleFrom(
@@ -717,7 +856,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
                 Expanded(
                   child: Text(titulo, style: AppTextStyles.sectionTitle),
                 ),
-                ?accion,
+                if (accion != null) accion,
               ],
             ),
             const SizedBox(height: 14),
@@ -728,16 +867,41 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
     );
   }
 
-  Widget _campoBloqueado(String etiqueta, String valor) {
+  Widget _campoBloqueado(String etiqueta, String valor, {IconData? icono}) {
     return TextFormField(
       initialValue: valor,
       enabled: false,
-      decoration: InputDecoration(labelText: etiqueta),
+      decoration: InputDecoration(
+        labelText: etiqueta,
+        prefixIcon: icono == null ? null : Icon(icono),
+      ),
+    );
+  }
+
+  Widget _dato(String etiqueta, String? valor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(etiqueta, style: AppTextStyles.subtitle),
+          ),
+          Expanded(
+            child: Text(
+              valor == null || valor.isEmpty ? 'N/A' : valor,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _filaTotal(String etiqueta, double valor, {bool destacar = false}) {
     final estilo = destacar ? AppTextStyles.cardTitle : AppTextStyles.subtitle;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(

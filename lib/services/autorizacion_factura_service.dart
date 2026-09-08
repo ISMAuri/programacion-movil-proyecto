@@ -59,19 +59,6 @@ class AutorizacionFacturaService {
     return AutorizacionFactura.fromJson(response.data);
   }
 
-  // dorrige datos de una autorizacion existente
-  Future<AutorizacionFactura> putAutorizacion(
-    int id,
-    AutorizacionFactura autorizacion,
-  ) async {
-    final response = await _apiClient.dio.put(
-      '/autorizacion-facturas/$id',
-      data: autorizacion.toJson(),
-    );
-
-    return AutorizacionFactura.fromJson(response.data);
-  }
-
   // Desactiva una autorizacion
   Future<void> deleteAutorizacion(int id) async {
     await _apiClient.dio.delete('/autorizacion-facturas/$id');

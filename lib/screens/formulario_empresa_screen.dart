@@ -3,6 +3,7 @@ import 'package:programacion_movil_proyecto/services/empresa_service.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 import '../models/empresa.dart';
+import '../widgets/aviso_card.dart';
 
 class FormularioEmpresaScreen extends StatefulWidget {
   const FormularioEmpresaScreen({super.key});
@@ -88,8 +89,10 @@ class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al actualizar datos de la empresa'),
-          backgroundColor: AppColors.error,),
+        SnackBar(
+          content: Text('Error al actualizar datos de la empresa'),
+          backgroundColor: AppColors.error,
+        ),
       );
     }
   }
@@ -128,6 +131,12 @@ class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
                 padding: const EdgeInsets.all(20),
                 children: [
                   const SizedBox(height: 20),
+
+                  AvisoCard(
+                    text:
+                        "Los datos de la empresa se utilizan para generar las facturas electrónicas. Asegúrate de que sean correctos y estén actualizados.",
+                  ),
+                  const SizedBox(height: 15),
 
                   Card(
                     elevation: 2,

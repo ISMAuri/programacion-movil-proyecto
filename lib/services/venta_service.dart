@@ -31,6 +31,12 @@ class VentaService {
     return Venta.fromJson(response.data);
   }
 
+  Future<Venta> anularVenta(int id) async {
+    final response = await _apiClient.dio.put('/ventas/$id/anular');
+
+    return Venta.fromJson(response.data['venta']);
+  }
+
   Future<Venta> actualizarRutaPdf(int idVenta, String rutaPdf) async {
     final response = await _apiClient.dio.patch(
       '/ventas/$idVenta/pdf',

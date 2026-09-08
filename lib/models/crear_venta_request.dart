@@ -12,7 +12,6 @@ class CrearVentaRequest {
   final String? constanciaRegistroExonerados;
   final String? registroSag;
 
-  final String totalLetras;
 
   const CrearVentaRequest({
     this.idCliente,
@@ -23,7 +22,6 @@ class CrearVentaRequest {
     this.ordenCompraExenta,
     this.constanciaRegistroExonerados,
     this.registroSag,
-    required this.totalLetras,
   });
 
   Map<String, dynamic> toJson() {
@@ -36,7 +34,6 @@ class CrearVentaRequest {
       'orden_compra_exenta': ordenCompraExenta,
       'constancia_registro_exonerados': constanciaRegistroExonerados,
       'registro_sag': registroSag,
-      'total_letras': totalLetras,
     };
   }
 }
