@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 import '../models/venta.dart';
@@ -16,6 +20,7 @@ class _VentasScreenState extends State<VentasScreen> {
 
   bool cargando = true;
   List<Venta> _ventas = [];
+  final Set<int> _facturasDescargando = {};
 
   Future<void> _cargarVentas() async {
     setState(() {
@@ -67,10 +72,59 @@ class _VentasScreenState extends State<VentasScreen> {
     await _cargarVentas();
   }
 
-  void _descargarFactura(Venta venta) {
-    _mostrarMensaje(
-      'La descarga de la factura ${venta.numeroFactura} se habilitará con el backend.',
-    );
+  Future<void> _descargarFactura(Venta venta) async {
+    if (_facturasDescargando.contains(venta.idVenta)) return;
+
+    setState(() {
+      _facturasDescargando.add(venta.idVenta);
+    });
+
+    try {
+      final directorioBase = await getApplicationDocumentsDirectory();
+
+      final directorioFacturas = Directory('${directorioBase.path}/facturas');
+
+      if (!await directorioFacturas.exists()) {
+        await directorioFacturas.create(recursive: true);
+      }
+
+      final nombreSeguro = venta.numeroFactura.replaceAll(
+        RegExp(r'[^a-zA-Z0-9._-]'),
+        '_',
+      );
+
+      final rutaPdf = '${directorioFacturas.path}/factura-$nombreSeguro.pdf';
+
+      await _ventaService.descargarFactura(venta.idVenta, rutaPdf);
+
+      if (!mounted) return;
+
+      _mostrarMensaje(
+        'Factura descargada correctamente',
+        color: AppColors.success,
+      );
+
+      final resultado = await OpenFilex.open(rutaPdf);
+
+      if (!mounted) return;
+
+      if (resultado.type != ResultType.done) {
+        _mostrarMensaje(
+          'La factura se descargó, pero no se pudo abrir automáticamente',
+          color: AppColors.error,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      _mostrarMensaje('Error al descargar la factura', color: AppColors.error);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _facturasDescargando.remove(venta.idVenta);
+        });
+      }
+    }
   }
 
   void _mostrarMensaje(String mensaje, {Color? color}) {
@@ -95,6 +149,8 @@ class _VentasScreenState extends State<VentasScreen> {
         ? AppColors.success
         : AppColors.error;
 
+    final descargando = _facturasDescargando.contains(venta.idVenta);
+
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       color: AppColors.white,
@@ -112,10 +168,17 @@ class _VentasScreenState extends State<VentasScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      
-                      Text(venta.caiFactura, style: AppTextStyles.cardTitle.copyWith(fontSize: 14)),
+                      Text(
+                        venta.caiFactura,
+                        style: AppTextStyles.cardTitle.copyWith(fontSize: 14),
+                      ),
                       const SizedBox(height: 4),
-                      Text(venta.numeroFactura, style: AppTextStyles.cardTitle.copyWith(color: AppColors.primary)),
+                      Text(
+                        venta.numeroFactura,
+                        style: AppTextStyles.cardTitle.copyWith(
+                          color: AppColors.primary,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         venta.clienteNombreFactura,
@@ -166,9 +229,17 @@ class _VentasScreenState extends State<VentasScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => _descargarFactura(venta),
-                    icon: const Icon(Icons.download_outlined),
-                    label: const Text('Descargar'),
+                    onPressed: descargando
+                        ? null
+                        : () => _descargarFactura(venta),
+                    icon: descargando
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.download_outlined),
+                    label: Text(descargando ? 'Descargando...' : 'Descargar'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: AppColors.white,

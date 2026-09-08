@@ -37,12 +37,7 @@ class VentaService {
     return Venta.fromJson(response.data['venta']);
   }
 
-  Future<Venta> actualizarRutaPdf(int idVenta, String rutaPdf) async {
-    final response = await _apiClient.dio.patch(
-      '/ventas/$idVenta/pdf',
-      data: {'ruta_pdf_factura': rutaPdf},
-    );
-
-    return Venta.fromJson(response.data);
+  Future<void> descargarFactura(int idVenta, String rutaDestino) async {
+    await _apiClient.dio.download('/ventas/$idVenta/pdf', rutaDestino);
   }
 }
