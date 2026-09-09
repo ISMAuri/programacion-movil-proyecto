@@ -19,6 +19,8 @@ import '../services/producto_service.dart';
 import '../services/venta_service.dart';
 import '../services/notification_service.dart';
 
+import '../widgets/aviso_card.dart';
+
 const List<String> _metodosPago = [
   'Efectivo',
   'Tarjeta',
@@ -485,6 +487,12 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          if (venta != null)
+            AvisoCard(
+              text:
+                  'Si han pasado más de 30 días posteriores a la emisión de la factura, esta no podrá ser anulada.',
+            ),
+          const SizedBox(height: 16),
           if (venta != null) ...[
             _estadoFactura(venta),
             const SizedBox(height: 16),
