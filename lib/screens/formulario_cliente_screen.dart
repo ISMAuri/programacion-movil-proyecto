@@ -4,6 +4,8 @@ import '../config/app_text_styles.dart';
 import '../models/cliente.dart';
 import '../services/cliente_service.dart';
 
+import '../services/notification_service.dart';
+
 class FormularioClienteScreen extends StatefulWidget {
   const FormularioClienteScreen({super.key});
 
@@ -70,7 +72,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
       telefono: telefono.isEmpty ? null : telefono,
       correo: correo.isEmpty ? null : correo,
       estado: _estado,
-      fechaRegistro: _cliente?.fechaRegistro ?? DateTime.now()
+      fechaRegistro: _cliente?.fechaRegistro ?? DateTime.now(),
     );
 
     try {
@@ -78,6 +80,11 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
         await _clienteService.putCliente(_cliente!.idCliente!, cliente);
       } else {
         await _clienteService.postCliente(cliente);
+
+        await NotificationService.mostrarNotificacion(
+          titulo: 'Cliente registrado',
+          mensaje: '${cliente.nombreCliente} fue agregado correctamente.',
+        );
       }
 
       if (!mounted) return;
@@ -96,9 +103,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      _mostrarError(
-        'Error al ${_esEdicion ? "actualizar" : "crear"} cliente',
-      );
+      _mostrarError('Error al ${_esEdicion ? "actualizar" : "crear"} cliente');
     }
   }
 

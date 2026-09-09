@@ -17,6 +17,7 @@ import '../services/cliente_service.dart';
 import '../services/detalle_venta_service.dart';
 import '../services/producto_service.dart';
 import '../services/venta_service.dart';
+import '../services/notification_service.dart';
 
 const List<String> _metodosPago = [
   'Efectivo',
@@ -352,7 +353,13 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
         guardando = true;
       });
 
-      await _ventaService.postVenta(request);
+      final ventaCreada = await _ventaService.postVenta(request);
+
+      await NotificationService.mostrarNotificacion(
+        titulo: 'Factura emitida',
+        mensaje:
+            'La factura ${ventaCreada.numeroFactura} fue registrada correctamente.',
+      );
 
       if (!mounted) return;
 
@@ -421,7 +428,13 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
         guardando = true;
       });
 
-      await _ventaService.anularVenta(venta.idVenta);
+      final ventaAnulada = await _ventaService.anularVenta(venta.idVenta);
+
+      await NotificationService.mostrarNotificacion(
+        titulo: 'Factura anulada',
+        mensaje:
+            'La factura ${ventaAnulada.numeroFactura} fue anulada correctamente.',
+      );
 
       if (!mounted) return;
 
@@ -568,8 +581,12 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
               _campoBloqueado(
                 'Fecha de autorización',
                 _soloLectura
-                    ? _fecha(_venta!.fechaAutorizacionFactura)
-                    : _fecha(_autorizacionActiva!.fechaAutorizacion),
+                    ? (_venta?.fechaAutorizacionFactura != null
+                          ? _fecha(_venta!.fechaAutorizacionFactura)
+                          : '')
+                    : (_autorizacionActiva?.fechaAutorizacion != null
+                          ? _fecha(_autorizacionActiva!.fechaAutorizacion)
+                          : ''),
               ),
               const SizedBox(height: 12),
               _campoBloqueado('Fecha límite de emisión', _fechaLimiteMostrada),

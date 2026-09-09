@@ -7,6 +7,8 @@ import '../models/producto.dart';
 import '../services/categoria_service.dart';
 import '../services/producto_service.dart';
 
+import '../services/notification_service.dart';
+
 const List<String> _unidadesDisponibles = [
   'Unidad',
   'Libra',
@@ -214,6 +216,11 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
         await _productoService.putProducto(_producto!.idProducto!, producto);
       } else {
         await _productoService.postProducto(producto);
+
+        await NotificationService.mostrarNotificacion(
+          titulo: 'Producto registrado',
+          mensaje: '${producto.nombreProducto} fue agregado correctamente.',
+        );
       }
 
       if (!mounted) return;
@@ -393,7 +400,9 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
                           ),
                           SwitchListTile(
                             contentPadding: EdgeInsets.zero,
-                            activeTrackColor: _esEdicion ? AppColors.success : AppColors.disabled,
+                            activeTrackColor: _esEdicion
+                                ? AppColors.success
+                                : AppColors.disabled,
                             title: Text(
                               'Estado del producto',
                               style: AppTextStyles.subtitle,

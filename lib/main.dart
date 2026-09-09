@@ -16,7 +16,13 @@ import 'screens/formulario_empresa_screen.dart';
 import 'screens/formulario_usuario_screen.dart';
 import 'screens/formulario_datos_fiscales_screen.dart';
 
-void main() {
+import 'services/notification_service.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await NotificationService.inicializar();
+
   runApp(const MyApp());
 }
 
