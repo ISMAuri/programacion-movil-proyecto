@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 
@@ -24,22 +25,36 @@ class AccesoRapidoCard extends StatelessWidget {
       },
       child: Card(
         color: AppColors.white,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Stack(
+          alignment: Alignment.center,
           children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 45,
-              height: 45,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, size: 30, color: color),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 45,
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, size: 30, color: color),
+                ),
+
+                const SizedBox(height: 12),
+
+                Text(
+                  title,
+                  style: AppTextStyles.cardTitle,
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            Text(title, style: AppTextStyles.cardTitle),
-            const SizedBox(height: 6),
+
+            const Positioned(
+              right: 12,
+              child: Icon(Icons.chevron_right, color: AppColors.disabled),
+            ),
           ],
         ),
       ),

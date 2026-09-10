@@ -25,7 +25,7 @@ class EstadisticaCard extends StatelessWidget {
         // Navigator.pushNamed(context, routeName);
       },
       child: Card(
-        color: AppColors.white,
+        color: Colors.white,
         child: Row(
           children: [
             const SizedBox(width: 12),
