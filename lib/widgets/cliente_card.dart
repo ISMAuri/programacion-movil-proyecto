@@ -26,7 +26,7 @@ class ClienteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
+      elevation: 4,
       color: AppColors.white,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -62,6 +62,10 @@ class ClienteCard extends StatelessWidget {
                       Text("RTN: $rtn", style: AppTextStyles.subtitle),
                     ],
                   ),
+                ),
+                Icon(
+                  Icons.chevron_right,
+                  color: AppColors.disabled,
                 ),
               ],
             ),

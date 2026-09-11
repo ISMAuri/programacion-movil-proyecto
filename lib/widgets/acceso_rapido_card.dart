@@ -24,6 +24,7 @@ class AccesoRapidoCard extends StatelessWidget {
         Navigator.pushNamed(context, routeName);
       },
       child: Card(
+        elevation: 4,
         color: AppColors.white,
         child: Stack(
           alignment: Alignment.center,

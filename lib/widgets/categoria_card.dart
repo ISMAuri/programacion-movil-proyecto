@@ -77,6 +77,7 @@ class CategoriaCard extends StatelessWidget {
                 ),
               ),
             ),
+            Icon(Icons.chevron_right, color: AppColors.disabled),
           ],
         ),
       ),
