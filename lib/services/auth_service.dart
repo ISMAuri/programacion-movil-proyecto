@@ -25,4 +25,24 @@ class AuthService {
 
     return User.fromJson(response.data);
   }
+
+  // Registrar un nuevo usuario
+  Future<User> register({
+    required String fullName,
+    required String email,
+    required String password,
+    String role = 'client',
+  }) async {
+    final response = await _apiClient.dio.post(
+      '/auth/register',
+      data: {
+        'fullName': fullName,
+        'email': email,
+        'password': password,
+        'role': role,
+      },
+    );
+
+    return User.fromJson(response.data["user"]);
+  }
 }

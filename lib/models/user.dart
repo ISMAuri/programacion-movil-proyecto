@@ -1,7 +1,7 @@
 import '../utils/json_utils.dart';
 
 class User {
-  final int id;
+  final int? id;
   final String fullName;
   final String email;
   final String role;

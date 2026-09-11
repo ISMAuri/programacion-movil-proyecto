@@ -15,6 +15,7 @@ import 'screens/formulario_venta_screen.dart';
 import 'screens/formulario_empresa_screen.dart';
 import 'screens/formulario_usuario_screen.dart';
 import 'screens/formulario_datos_fiscales_screen.dart';
+import 'screens/register_screen.dart';
 
 import 'services/notification_service.dart';
 
@@ -40,6 +41,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(), 
 
         '/home': (context) => const HomeScreen(),
 
