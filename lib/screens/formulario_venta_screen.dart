@@ -20,6 +20,7 @@ import '../services/venta_service.dart';
 import '../services/notification_service.dart';
 
 import '../widgets/aviso_card.dart';
+import '../utils/fecha_utils.dart';
 
 const List<String> _metodosPago = [
   'Efectivo',
@@ -33,6 +34,7 @@ class _LineaVenta {
   int cantidad;
   double descuento;
 
+  // ignore: unused_element_parameter
   _LineaVenta({this.producto, this.cantidad = 1, this.descuento = 0});
 
   double get importeBruto => (producto?.precioVenta ?? 0) * cantidad;
@@ -543,7 +545,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
               const SizedBox(height: 14),
               _campoBloqueado(
                 'Fecha de venta',
-                _fecha(_fechaVenta),
+                FechaUtils.formatearFechaHora(_fechaVenta),
                 icono: Icons.calendar_today_outlined,
               ),
               const SizedBox(height: 14),
@@ -888,7 +890,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
                 Expanded(
                   child: Text(titulo, style: AppTextStyles.sectionTitle),
                 ),
-                if (accion != null) accion,
+                ?accion,
               ],
             ),
             const SizedBox(height: 14),

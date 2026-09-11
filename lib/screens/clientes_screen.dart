@@ -31,7 +31,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Error al cargar clientes")));
+      ).showSnackBar(SnackBar(content: Text("Error al cargar clientes"), backgroundColor: AppColors.error));
 
       setState(() => cargando = false);
     }

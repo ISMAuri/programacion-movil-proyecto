@@ -207,6 +207,7 @@ class Menu extends StatelessWidget {
               style: TextStyle(color: AppColors.error),
             ),
             onTap: () async {
+
               await StorageService().deleteToken();
 
               if (!context.mounted) return;
@@ -223,12 +224,3 @@ class Menu extends StatelessWidget {
     );
   }
 }
-
-//“La diferencia es que UserAccountsDrawerHeader está diseñado para mostrar información de un usuario, 
-//como foto, nombre y correo. Aca usamos un DrawerHeader personalizado porque queríamos mostrar la identidad de la empresa 
-//y tener más control sobre el diseño.”
-
-//Pregunta 6. 
-//Sería StatefulWidget porque el contador cambia con el tiempo. 
-//Necesito guardar el valor del contador y usar setState() cada vez que cambia para actualizarlo en pantalla. 
-//Un StatelessWidget no puede manejar ese estado por sí mismo.

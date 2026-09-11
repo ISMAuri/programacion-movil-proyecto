@@ -7,6 +7,7 @@ import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 import '../models/venta.dart';
 import '../services/venta_service.dart';
+import '../utils/fecha_utils.dart';
 
 class VentasScreen extends StatefulWidget {
   const VentasScreen({super.key});
@@ -133,12 +134,6 @@ class _VentasScreenState extends State<VentasScreen> {
       ..showSnackBar(SnackBar(content: Text(mensaje), backgroundColor: color));
   }
 
-  String _fecha(DateTime fecha) {
-    final dia = fecha.day.toString().padLeft(2, '0');
-    final mes = fecha.month.toString().padLeft(2, '0');
-
-    return '$dia/$mes/${fecha.year}';
-  }
 
   String _lps(double valor) {
     return 'L. ${valor.toStringAsFixed(2)}';
@@ -211,7 +206,7 @@ class _VentasScreenState extends State<VentasScreen> {
               children: [
                 const Icon(Icons.calendar_today_outlined, size: 18),
                 const SizedBox(width: 6),
-                Text(_fecha(venta.fechaVenta)),
+                Text(FechaUtils.formatearFechaHora(venta.fechaVenta)),
                 const Spacer(),
                 Text(_lps(venta.total), style: AppTextStyles.price),
               ],

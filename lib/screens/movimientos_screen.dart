@@ -8,6 +8,7 @@ import '../services/auth_service.dart';
 import '../models/producto.dart';
 import '../models/user.dart';
 import '../services/producto_service.dart';
+import '../utils/fecha_utils.dart';
 
 class MovimientosScreen extends StatefulWidget {
   const MovimientosScreen({super.key});
@@ -101,8 +102,11 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
 
                   cantidad: movimiento.cantidad,
 
-                  fechaMovimiento:
-                      movimiento.fechaMovimiento?.toString() ?? 'Sin fecha',
+                  fechaMovimiento: movimiento.fechaMovimiento != null
+                      ? FechaUtils.formatearFechaHora(
+                          movimiento.fechaMovimiento!,
+                        )
+                      : 'Sin fecha',
 
                   motivo: movimiento.motivo ?? 'Sin motivo',
 

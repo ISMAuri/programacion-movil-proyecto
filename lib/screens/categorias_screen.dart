@@ -30,7 +30,6 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
   }
 
   Future<void> _cargarCategorias() async {
-    
     setState(() => cargando = true);
     try {
       final response = await _categoriaService.getCategorias(
@@ -44,9 +43,12 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error al cargar categorías")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error al cargar categorías"),
+          backgroundColor: AppColors.error,
+        ),
+      );
 
       setState(() => cargando = false);
     }
@@ -65,16 +67,22 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Categoría creada correctamente')),
+        const SnackBar(
+          content: Text('Categoría creada correctamente'),
+          backgroundColor: AppColors.success,
+        ),
       );
 
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error al crear categoría')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al crear categoría'),
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
   }
 
@@ -83,10 +91,27 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
     Navigator.pushNamed(context, '/formulario_categoria', arguments: categoria);
   }
 
-  void _eliminarCategoria(Categoria categoria) {
-    setState(() {
-      categorias.remove(categoria);
-    });
+  Future<void> _eliminarCategoria(Categoria categoria) async {
+    try {
+      final categoriaInactiva = Categoria(
+        id: categoria.id,
+        nombre: categoria.nombre,
+        descripcion: categoria.descripcion,
+        icono: categoria.icono,
+        activo: false,
+      );
+
+      await _categoriaService.putCategoria(categoria.id!, categoriaInactiva);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Error al desactivar la categoría'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   // formulario enbottomsheet para agregar una nueva categoria
@@ -199,7 +224,7 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
         title: const Text("Categorías", style: AppTextStyles.screenTitle),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
-                actions: [
+        actions: [
           IconButton(
             onPressed: _cargarCategorias,
             icon: const Icon(Icons.refresh),
@@ -221,11 +246,7 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
                 return Dismissible(
                   key: ValueKey(categoria.id),
 
-                  direction: DismissDirection
-                      .horizontal, // permite deslizar en ambas direcciones
-                  //Dismissible tiene up y down, pero para una tercera acción vertical personalizada usar GestureDetector,
-                  //detectando onVerticalDragEnd, porque así puedo controlar mi propia lógica y animación.
-
+                  direction: DismissDirection.horizontal,
                   // si desliza hacia la derecha -> Editar
                   background: Container(
                     color: Colors.green,
@@ -282,24 +303,42 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
 
                     // si desliza hacia la izquierda
                     if (direction == DismissDirection.endToStart) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("${categoria.nombre} eliminada"),
-                        ),
-                      );
+                      try {
+                        await _eliminarCategoria(categoria);
 
-                      // Permitir que desaparezca
-                      return true;
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (!mounted) return;
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '${categoria.nombre} marcada como inactiva',
+                              ),
+                              backgroundColor: AppColors.success,
+                            ),
+                          );
+
+                          _cargarCategorias();
+                        });
+
+                        return false;
+                      } catch (e) {
+                        if (!context.mounted) return false;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              'Error al desactivar la categoría',
+                            ),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+
+                        return false;
+                      }
                     }
 
                     return false;
-                  },
-
-                  // que se elimne hasta que termine el deslizamiento
-                  onDismissed: (direction) {
-                    if (direction == DismissDirection.endToStart) {
-                      _eliminarCategoria(categoria);
-                    }
                   },
 
                   child: _CategoriaItem(
@@ -320,12 +359,6 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           _mostrarFormularioCategoria(context);
-
-          // Antes se enviaba a otra pantalla:
-          // Navigator.pushNamed(
-          //   context,
-          //   '/formulario_categoria',
-          // );
         },
         backgroundColor: AppColors.secondary,
         foregroundColor: AppColors.white,
@@ -382,7 +415,10 @@ class _CategoriaItem extends StatelessWidget {
                     onEliminar();
 
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("${categoria.nombre} eliminada")),
+                      SnackBar(
+                        content: Text("${categoria.nombre} eliminada"),
+                        backgroundColor: AppColors.error,
+                      ),
                     );
                   },
                   child: const Text("Eliminar"),

@@ -202,7 +202,7 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
                     return Card(
                       margin: const EdgeInsets.only(bottom: 10),
                       color: AppColors.white,
-                      elevation: 1,
+                      elevation: 3,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
