@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../config/app_text_styles.dart';
 import '../config/app_colors.dart';
 import '../models/categoria.dart';
@@ -12,7 +13,6 @@ class CategoriasScreen extends StatefulWidget {
   State<CategoriasScreen> createState() => _CategoriasScreenState();
 }
 
-// Lista de categorías de ejemplo
 class _CategoriasScreenState extends State<CategoriasScreen> {
   final CategoriaService _categoriaService = CategoriaService();
 
@@ -20,6 +20,8 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
 
   final _nombreController = TextEditingController();
   final _descripcionController = TextEditingController();
+
+  String _busqueda = '';
 
   bool cargando = true;
 
@@ -31,26 +33,76 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
 
   Future<void> _cargarCategorias() async {
     setState(() => cargando = true);
+
     try {
       final response = await _categoriaService.getCategorias(
         soloActivas: false,
       );
 
       if (!mounted) return;
+
       setState(() {
         categorias = response;
         cargando = false;
       });
     } catch (e) {
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error al cargar categorías"),
+          content: const Text("Error al cargar categorías"),
           backgroundColor: AppColors.error,
         ),
       );
 
       setState(() => cargando = false);
+    }
+  }
+
+  List<Categoria> get _categoriasFiltradas {
+    final texto = _busqueda.toLowerCase().trim();
+
+    if (texto.isEmpty) {
+      return categorias;
+    }
+
+    return categorias.where((categoria) {
+      return categoria.nombre.toLowerCase().contains(texto) ||
+          (categoria.descripcion?.toLowerCase().contains(texto) ?? false);
+    }).toList();
+  }
+
+  // Obtiene el icono correspondiente a cada categoría.
+  // Si no encuentra una categoría conocida,
+  // utiliza un icono por defecto.
+  IconData _obtenerIcono(Categoria categoria) {
+    switch (categoria.nombre.toLowerCase()) {
+      case 'abarrotes':
+        return Icons.shopping_basket_outlined;
+
+      case 'bebidas':
+        return Icons.local_drink_outlined;
+
+      case 'limpieza':
+        return Icons.cleaning_services_outlined;
+
+      case 'higiene personal':
+        return Icons.sanitizer_outlined;
+
+      case 'papel y desechables':
+        return Icons.inventory_2_outlined;
+
+      case 'snacks y confitería':
+        return Icons.cookie_outlined;
+
+      case 'papelería':
+        return Icons.edit_note_outlined;
+
+      case 'ferretería y mantenimiento':
+        return Icons.handyman_outlined;
+
+      default:
+        return Icons.inventory_2_outlined;
     }
   }
 
@@ -79,14 +131,13 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error al crear categoría'),
+          content: const Text('Error al crear categoría'),
           backgroundColor: AppColors.error,
         ),
       );
     }
   }
 
-  // acciones sobre las categorías
   void _abrirFormularioEdicion(BuildContext context, Categoria categoria) {
     Navigator.pushNamed(context, '/formulario_categoria', arguments: categoria);
   }
@@ -114,7 +165,6 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
     }
   }
 
-  // formulario enbottomsheet para agregar una nueva categoria
   void _mostrarFormularioCategoria(BuildContext context) {
     bool estado = true;
 
@@ -219,6 +269,8 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final categoriasFiltradas = _categoriasFiltradas;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Categorías", style: AppTextStyles.screenTitle),
@@ -232,130 +284,173 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
           ),
         ],
       ),
-
       backgroundColor: AppColors.background,
-
       body: cargando
           ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              itemCount: categorias.length,
-              itemBuilder: (context, index) {
-                final categoria = categorias[index];
-
-                return Dismissible(
-                  key: ValueKey(categoria.id),
-
-                  direction: DismissDirection.horizontal,
-                  // si desliza hacia la derecha -> Editar
-                  background: Container(
-                    color: Colors.green,
-                    alignment: Alignment.centerLeft,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.edit, color: Colors.white),
-                        SizedBox(width: 8),
-                        Text(
-                          "Editar",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 10,
                   ),
-
-                  // si desliza hacia la izquierda -> Eliminar
-                  secondaryBackground: Container(
-                    color: Colors.red,
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          "Eliminar",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(Icons.delete, color: Colors.white),
-                      ],
+                  child: Container(
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(18),
                     ),
-                  ),
-
-                  confirmDismiss: (direction) async {
-                    // si desliza hacia la derecha
-                    if (direction == DismissDirection.startToEnd) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Editando ${categoria.nombre}")),
-                      );
-
-                      _abrirFormularioEdicion(context, categoria);
-
-                      // No desaparece el item
-                      return false;
-                    }
-
-                    // si desliza hacia la izquierda
-                    if (direction == DismissDirection.endToStart) {
-                      try {
-                        await _eliminarCategoria(categoria);
-
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (!mounted) return;
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                '${categoria.nombre} marcada como inactiva',
-                              ),
-                              backgroundColor: AppColors.success,
-                            ),
-                          );
-
-                          _cargarCategorias();
+                    child: TextField(
+                      onChanged: (valor) {
+                        setState(() {
+                          _busqueda = valor;
                         });
-
-                        return false;
-                      } catch (e) {
-                        if (!context.mounted) return false;
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text(
-                              'Error al desactivar la categoría',
-                            ),
-                            backgroundColor: AppColors.error,
-                          ),
-                        );
-
-                        return false;
-                      }
-                    }
-
-                    return false;
-                  },
-
-                  child: _CategoriaItem(
-                    categoria: categoria,
-
-                    onTap: () {
-                      _abrirFormularioEdicion(context, categoria);
-                    },
-
-                    onEliminar: () {
-                      _eliminarCategoria(categoria);
-                    },
+                      },
+                      decoration: const InputDecoration(
+                        hintText: 'Buscar por nombre o descripción...',
+                        prefixIcon: Icon(Icons.search),
+                        border: InputBorder.none,
+                      ),
+                    ),
                   ),
-                );
-              },
-            ),
+                ),
 
+                Expanded(
+                  child: categoriasFiltradas.isEmpty
+                      ? const Center(
+                          child: Text('No se encontraron categorías'),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          itemCount: categoriasFiltradas.length,
+                          itemBuilder: (context, index) {
+                            final categoria = categoriasFiltradas[index];
+
+                            return Dismissible(
+                              key: ValueKey(categoria.id),
+                              direction: DismissDirection.horizontal,
+
+                              // Deslizar hacia la derecha = Editar
+                              background: Container(
+                                color: Colors.green,
+                                alignment: Alignment.centerLeft,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.edit, color: Colors.white),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      "Editar",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // Deslizar hacia la izquierda = Eliminar
+                              secondaryBackground: Container(
+                                color: Colors.red,
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      "Eliminar",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Icon(Icons.delete, color: Colors.white),
+                                  ],
+                                ),
+                              ),
+
+                              confirmDismiss: (direction) async {
+                                if (direction == DismissDirection.startToEnd) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        "Editando ${categoria.nombre}",
+                                      ),
+                                    ),
+                                  );
+
+                                  _abrirFormularioEdicion(context, categoria);
+
+                                  return false;
+                                }
+
+                                if (direction == DismissDirection.endToStart) {
+                                  try {
+                                    await _eliminarCategoria(categoria);
+
+                                    WidgetsBinding.instance.addPostFrameCallback((
+                                      _,
+                                    ) {
+                                      if (!mounted) return;
+
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            '${categoria.nombre} marcada como inactiva',
+                                          ),
+                                          backgroundColor: AppColors.success,
+                                        ),
+                                      );
+
+                                      _cargarCategorias();
+                                    });
+
+                                    return false;
+                                  } catch (e) {
+                                    if (!context.mounted) {
+                                      return false;
+                                    }
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: const Text(
+                                          'Error al desactivar la categoría',
+                                        ),
+                                        backgroundColor: AppColors.error,
+                                      ),
+                                    );
+
+                                    return false;
+                                  }
+                                }
+
+                                return false;
+                              },
+
+                              child: _CategoriaItem(
+                                categoria: categoria,
+                                icono: _obtenerIcono(categoria),
+                                onTap: () {
+                                  _abrirFormularioEdicion(context, categoria);
+                                },
+                                onEliminar: () {
+                                  _eliminarCategoria(categoria);
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           _mostrarFormularioCategoria(context);
@@ -369,14 +464,15 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
   }
 }
 
-// Widget reutilizable para cada categoría
 class _CategoriaItem extends StatelessWidget {
   final Categoria categoria;
+  final IconData icono;
   final VoidCallback onTap;
   final VoidCallback onEliminar;
 
   const _CategoriaItem({
     required this.categoria,
+    required this.icono,
     required this.onTap,
     required this.onEliminar,
   });
@@ -435,6 +531,7 @@ class _CategoriaItem extends StatelessWidget {
             nombre: categoria.nombre,
             descripcion: categoria.descripcion ?? "",
             activo: categoria.activo,
+            icono: icono,
           ),
         ],
       ),

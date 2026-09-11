@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
+
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 import '../models/venta.dart';
@@ -20,8 +21,18 @@ class _VentasScreenState extends State<VentasScreen> {
   final VentaService _ventaService = VentaService();
 
   bool cargando = true;
+
   List<Venta> _ventas = [];
+
+  String _busqueda = '';
+
   final Set<int> _facturasDescargando = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarVentas();
+  }
 
   Future<void> _cargarVentas() async {
     setState(() {
@@ -48,10 +59,18 @@ class _VentasScreenState extends State<VentasScreen> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _cargarVentas();
+  List<Venta> get _ventasFiltradas {
+    final texto = _busqueda.toLowerCase().trim();
+
+    if (texto.isEmpty) {
+      return _ventas;
+    }
+
+    return _ventas.where((venta) {
+      return venta.numeroFactura.toLowerCase().contains(texto) ||
+          venta.clienteNombreFactura.toLowerCase().contains(texto) ||
+          venta.caiFactura.toLowerCase().contains(texto);
+    }).toList();
   }
 
   Future<void> _abrirFormulario([Venta? venta]) async {
@@ -133,7 +152,6 @@ class _VentasScreenState extends State<VentasScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(mensaje), backgroundColor: color));
   }
-
 
   String _lps(double valor) {
     return 'L. ${valor.toStringAsFixed(2)}';
@@ -254,24 +272,54 @@ class _VentasScreenState extends State<VentasScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_ventas.isEmpty) {
-      return Center(
-        child: Text(
-          'No hay ventas registradas.',
-          style: AppTextStyles.subtitle,
-        ),
-      );
-    }
+    final ventas = _ventasFiltradas;
 
-    return RefreshIndicator(
-      onRefresh: _cargarVentas,
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: _ventas.length,
-        itemBuilder: (context, index) {
-          return _ventaCard(_ventas[index]);
-        },
-      ),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          child: Container(
+            height: 46,
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: TextField(
+              onChanged: (valor) {
+                setState(() {
+                  _busqueda = valor;
+                });
+              },
+              decoration: const InputDecoration(
+                hintText: 'Buscar por factura, cliente o CAI...',
+                prefixIcon: Icon(Icons.search),
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: ventas.isEmpty
+              ? Center(
+                  child: Text(
+                    _busqueda.trim().isEmpty
+                        ? 'No hay ventas registradas.'
+                        : 'No se encontraron ventas.',
+                    style: AppTextStyles.subtitle,
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _cargarVentas,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: ventas.length,
+                    itemBuilder: (context, index) {
+                      return _ventaCard(ventas[index]);
+                    },
+                  ),
+                ),
+        ),
+      ],
     );
   }
 

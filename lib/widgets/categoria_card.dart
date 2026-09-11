@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 
@@ -8,11 +9,13 @@ class CategoriaCard extends StatelessWidget {
     required this.nombre,
     required this.descripcion,
     required this.activo,
+    required this.icono,
   });
 
   final String nombre;
   final String descripcion;
   final bool activo;
+  final IconData icono;
 
   @override
   Widget build(BuildContext context) {
@@ -34,11 +37,7 @@ class CategoriaCard extends StatelessWidget {
                 color: AppColors.secondary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: const Icon(
-                Icons.category_outlined,
-                color: AppColors.secondary,
-                size: 22,
-              ),
+              child: Icon(icono, color: AppColors.secondary, size: 22),
             ),
 
             const SizedBox(width: 14),
@@ -61,7 +60,6 @@ class CategoriaCard extends StatelessWidget {
 
             const SizedBox(width: 10),
 
-            // Estado
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
@@ -77,7 +75,8 @@ class CategoriaCard extends StatelessWidget {
                 ),
               ),
             ),
-            Icon(Icons.chevron_right, color: AppColors.disabled),
+
+            const Icon(Icons.chevron_right, color: AppColors.disabled),
           ],
         ),
       ),

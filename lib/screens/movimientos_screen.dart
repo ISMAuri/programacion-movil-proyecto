@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../config/app_text_styles.dart';
 import '../config/app_colors.dart';
 import '../widgets/movimiento_card.dart';
@@ -20,15 +21,22 @@ class MovimientosScreen extends StatefulWidget {
 class _MovimientosScreenState extends State<MovimientosScreen> {
   final MovimientoInventarioService _movimientoInventarioService =
       MovimientoInventarioService();
+
   final ProductoService _productoService = ProductoService();
   final AuthService _authService = AuthService();
+
   List<MovimientoInventario> movimientos = [];
+
   Map<int, Producto> productos = {};
   Map<int, User> usuarios = {};
+
+  String _busqueda = '';
+
   bool cargando = true;
 
   Future<void> _cargarMovimientos() async {
     setState(() => cargando = true);
+
     try {
       final response = await _movimientoInventarioService.getMovimientos();
 
@@ -51,17 +59,45 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
       }
 
       if (!mounted) return;
+
       setState(() {
         movimientos = response;
         cargando = false;
       });
     } catch (e) {
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error al cargar los movimientos")),
+        SnackBar(
+          content: const Text("Error al cargar los movimientos"),
+          backgroundColor: AppColors.error,
+        ),
       );
+
       setState(() => cargando = false);
     }
+  }
+
+  List<MovimientoInventario> get _movimientosFiltrados {
+    final texto = _busqueda.toLowerCase().trim();
+
+    if (texto.isEmpty) {
+      return movimientos;
+    }
+
+    return movimientos.where((movimiento) {
+      final producto = productos[movimiento.idProducto];
+
+      final nombreProducto = producto?.nombreProducto.toLowerCase() ?? '';
+
+      final fecha = movimiento.fechaMovimiento != null
+          ? FechaUtils.formatearFechaHora(
+              movimiento.fechaMovimiento!,
+            ).toLowerCase()
+          : '';
+
+      return nombreProducto.contains(texto) || fecha.contains(texto);
+    }).toList();
   }
 
   @override
@@ -72,6 +108,8 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final movimientosFiltrados = _movimientosFiltrados;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Movimientos", style: AppTextStyles.screenTitle),
@@ -88,36 +126,69 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
       backgroundColor: AppColors.background,
       body: cargando
           ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              itemCount: movimientos.length,
-              itemBuilder: (context, index) {
-                final movimiento = movimientos[index];
-
-                final producto = productos[movimiento.idProducto];
-                final user = usuarios[movimiento.idUsuario];
-
-                return MovimientoCard(
-                  tipoMovimiento: movimiento.tipoMovimiento.name,
-
-                  cantidad: movimiento.cantidad,
-
-                  fechaMovimiento: movimiento.fechaMovimiento != null
-                      ? FechaUtils.formatearFechaHora(
-                          movimiento.fechaMovimiento!,
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 10,
+                  ),
+                  child: Container(
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: TextField(
+                      onChanged: (valor) {
+                        setState(() {
+                          _busqueda = valor;
+                        });
+                      },
+                      decoration: const InputDecoration(
+                        hintText: 'Buscar por producto o fecha...',
+                        prefixIcon: Icon(Icons.search),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: movimientosFiltrados.isEmpty
+                      ? const Center(
+                          child: Text('No se encontraron movimientos'),
                         )
-                      : 'Sin fecha',
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          itemCount: movimientosFiltrados.length,
+                          itemBuilder: (context, index) {
+                            final movimiento = movimientosFiltrados[index];
 
-                  motivo: movimiento.motivo ?? 'Sin motivo',
+                            final producto = productos[movimiento.idProducto];
 
-                  producto:
-                      producto?.nombreProducto ??
-                      'Producto ${movimiento.idProducto}',
+                            final user = usuarios[movimiento.idUsuario];
 
-                  encargado:
-                      user?.fullName ?? 'Usuario ${movimiento.idUsuario}',
-                );
-              },
+                            return MovimientoCard(
+                              tipoMovimiento: movimiento.tipoMovimiento.name,
+                              cantidad: movimiento.cantidad,
+                              fechaMovimiento:
+                                  movimiento.fechaMovimiento != null
+                                  ? FechaUtils.formatearFechaHora(
+                                      movimiento.fechaMovimiento!,
+                                    )
+                                  : 'Sin fecha',
+                              motivo: movimiento.motivo ?? 'Sin motivo',
+                              producto:
+                                  producto?.nombreProducto ??
+                                  'Producto ${movimiento.idProducto}',
+                              encargado:
+                                  user?.fullName ??
+                                  'Usuario ${movimiento.idUsuario}',
+                            );
+                          },
+                        ),
+                ),
+              ],
             ),
     );
   }
