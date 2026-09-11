@@ -14,6 +14,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool loading = false;
+
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
@@ -30,25 +31,41 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final response = await AuthService().login(request);
 
-      // Persistimos el token para que ApiClient lo adjunto en proximos requests
       await StorageService().saveToken(response.accessToken);
 
       if (!mounted) return;
 
       Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Bienvenido ${response.user.fullName}'), backgroundColor: AppColors.success),
+        SnackBar(
+          content: Text('Bienvenido ${response.user.fullName}'),
+          backgroundColor: AppColors.success,
+        ),
       );
     } catch (e) {
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Correo o contraseña incorrectos'), backgroundColor: AppColors.error),
+        SnackBar(
+          content: const Text('Correo o contraseña incorrectos'),
+          backgroundColor: AppColors.error,
+        ),
       );
     } finally {
-      setState(() {
-        loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
     }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -102,16 +119,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 TextField(
                   controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: "Correo",
                     prefixIcon: Icon(
                       Icons.person_outline,
                       color: AppColors.primary,
                     ),
-
                     filled: true,
                     fillColor: AppColors.background,
-
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -124,18 +140,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextField(
                   controller: passwordController,
                   obscureText: true,
-
                   decoration: InputDecoration(
                     labelText: "Contraseña",
-
                     prefixIcon: Icon(
                       Icons.lock_outline,
                       color: AppColors.primary,
                     ),
-
                     filled: true,
                     fillColor: AppColors.background,
-
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -157,11 +169,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: () {
-                      loading ? null : login();
-                    },
+
+                    onPressed: loading ? null : login,
+
                     child: loading
-                        ? const CircularProgressIndicator()
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
                         : const Text(
                             "Ingresar",
                             style: TextStyle(
@@ -170,6 +189,32 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                   ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Crear cuenta
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "¿No tienes una cuenta? ",
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/register');
+                      },
+                      child: Text(
+                        "Crear una cuenta",
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
