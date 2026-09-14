@@ -142,11 +142,6 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
     }).toList();
   }
 
-  String? _textoOpcional(String valor) {
-    final texto = valor.trim();
-    return texto.isEmpty ? null : texto;
-  }
-
   double? _numeroOpcional(String valor) {
     final texto = valor.trim().replaceAll(',', '.');
 
@@ -162,10 +157,9 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
       return;
     }
 
-    if (_categoriaSeleccionada == null) {
-      _mostrarError('Selecciona una categoría');
-      return;
-    }
+    final nombre = _nombreController.text.trim();
+    final descripcion = _descripcionController.text.trim();
+    final codigo = _codigoController.text.trim();
 
     final precioCompra = _numeroOpcional(_precioCompraController.text);
 
@@ -175,34 +169,58 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
 
     final stock = int.tryParse(_stockController.text.trim());
 
+    if (nombre.isEmpty) {
+      _mostrarError('Ingresa el nombre del producto');
+      return;
+    }
+
+    if (nombre.length < 3) {
+      _mostrarError('El nombre debe tener al menos 3 caracteres');
+      return;
+    }
+
+    if (descripcion.isNotEmpty && descripcion.length < 5) {
+      _mostrarError('La descripción debe tener al menos 5 caracteres');
+      return;
+    }
+
+    if (codigo.isNotEmpty && codigo.length < 3) {
+      _mostrarError('El código debe tener al menos 3 caracteres');
+      return;
+    }
+
+    if (_categoriaSeleccionada == null) {
+      _mostrarError('Selecciona una categoría');
+      return;
+    }
+
     if (_precioCompraController.text.trim().isNotEmpty &&
         precioCompra == null) {
       _mostrarError('Ingresa un precio de compra válido');
       return;
     }
 
-    if (precioVenta == null || precioVenta < 0) {
-      _mostrarError('Ingresa un precio de venta válido');
+    if (precioCompra != null && precioCompra < 0) {
+      _mostrarError('El precio de compra no puede ser negativo');
       return;
     }
 
-    if (precioCompra != null && precioCompra < 0) {
-      _mostrarError('Ingresa un precio de compra válido');
+    if (precioVenta == null || precioVenta <= 0) {
+      _mostrarError('El precio de venta debe ser mayor que 0');
       return;
     }
 
     if (stock == null || stock < 0) {
-      _mostrarError('Ingresa un stock válido');
+      _mostrarError('El stock debe ser un número entero igual o mayor que 0');
       return;
     }
 
     final producto = Producto(
       idProducto: _producto?.idProducto,
       idCategoria: _categoriaSeleccionada!.id!,
-      nombreProducto: _nombreController.text.trim(),
-      descripcion: _textoOpcional(_descripcionController.text),
-      // rutaFoto: _producto?.rutaFoto,
-      codigoProducto: _textoOpcional(_codigoController.text),
+      nombreProducto: nombre,
+      descripcion: descripcion.isEmpty ? null : descripcion,
+      codigoProducto: codigo.isEmpty ? null : codigo,
       precioCompra: precioCompra,
       precioVenta: precioVenta,
       stockActual: stock,
@@ -224,13 +242,15 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
       }
 
       if (!mounted) return;
+
+      final mensaje = _esEdicion
+          ? 'Producto actualizado correctamente.'
+          : 'Producto creado correctamente.';
+
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(
-            content: Text('Producto creado correctamente.'),
-            backgroundColor: AppColors.success,
-          ),
+          SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
         );
 
       Navigator.pop(context, true);

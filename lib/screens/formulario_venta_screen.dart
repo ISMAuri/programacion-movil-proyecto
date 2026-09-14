@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
+import 'package:dio/dio.dart';
 
 import '../models/autorizacion_factura.dart';
 import '../models/cliente.dart';
@@ -160,7 +161,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
         cargando = false;
       });
 
-      _mensaje('Error al cargar los datos de la venta: $e');
+      _mensaje('Error al cargar los datos de la venta');
     }
   }
 
@@ -299,70 +300,137 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
   }
 
   Future<void> _registrarVenta() async {
-    if (!_formKey.currentState!.validate() || _clienteSeleccionado == null) {
-      _mensaje('Completa los datos obligatorios de la venta');
-      return;
-    }
+    if (guardando) return;
 
-    if (_lineas.any((linea) => linea.producto == null)) {
-      _mensaje('Selecciona un producto en cada línea');
-      return;
-    }
+    setState(() {
+      guardando = true;
+    });
 
-    final idsProductos = _lineas
-        .map((linea) => linea.producto!.idProducto)
-        .toList();
+    try {
+      if (!_formKey.currentState!.validate() || _clienteSeleccionado == null) {
+        _mensaje('Completa los datos obligatorios de la venta');
+        return;
+      }
 
-    if (idsProductos.toSet().length != idsProductos.length) {
-      _mensaje('No puedes agregar el mismo producto más de una vez');
-      return;
-    }
+      if (_lineas.any((linea) => linea.producto == null)) {
+        _mensaje('Selecciona un producto en cada línea');
+        return;
+      }
 
-    if (_idUsuarioActual == null || _autorizacionActiva == null) {
-      _mensaje('No se pudo obtener el usuario o la autorización fiscal activa');
-      return;
-    }
+      final idsProductos = _lineas
+          .map((linea) => linea.producto!.idProducto)
+          .toList();
 
-    for (final linea in _lineas) {
-      final producto = linea.producto!;
+      if (idsProductos.toSet().length != idsProductos.length) {
+        _mensaje('No puedes agregar el mismo producto más de una vez');
+        return;
+      }
 
-      if (linea.cantidad > producto.stockActual) {
+      if (_idUsuarioActual == null) {
+        _mensaje('No se pudo obtener el usuario actual.');
+        return;
+      }
+
+      if (_autorizacionActiva == null) {
+        _mensaje('No se encontró una autorización fiscal activa.');
+        return;
+      }
+
+      final autorizacion = _autorizacionActiva!;
+
+      // Validar fecha límite de emisión
+      final ahora = DateTime.now();
+
+      final fechaLimite = DateTime(
+        autorizacion.fechaLimiteEmision.year,
+        autorizacion.fechaLimiteEmision.month,
+        autorizacion.fechaLimiteEmision.day,
+        23,
+        59,
+        59,
+      );
+
+      if (ahora.isAfter(fechaLimite)) {
         _mensaje(
-          'Stock insuficiente para '
-          '${producto.nombreProducto}',
+          'La autorización fiscal está vencida. '
+          'La fecha límite de emisión era '
+          '${_fecha(autorizacion.fechaLimiteEmision)}',
         );
         return;
       }
-    }
 
-    final request = CrearVentaRequest(
-      idCliente: _clienteSeleccionado!.idCliente,
-      idUsuario: _idUsuarioActual!,
-      idAutorizacion: _autorizacionActiva!.idAutorizacion!,
-      metodoPago: _metodoPago,
-      ordenCompraExenta: null,
-      constanciaRegistroExonerados: null,
-      registroSag: null,
-      detalles: _lineas.map((linea) {
-        return DetalleVentaRequest(
-          idProducto: linea.producto!.idProducto!,
-          cantidad: linea.cantidad,
-          descuento: linea.descuento,
+      // Validar correlativo disponible
+      if (autorizacion.siguienteCorrelativo > autorizacion.rangoFinal) {
+        _mensaje('Se agotó el rango autorizado de facturación');
+        return;
+      }
+
+      // Validar cantidad, estado y stock actual
+      for (final linea in _lineas) {
+        final productoSeleccionado = linea.producto!;
+
+        if (linea.cantidad <= 0) {
+          _mensaje(
+            'La cantidad de ${productoSeleccionado.nombreProducto} '
+            'debe ser mayor que 0',
+          );
+          return;
+        }
+
+        final productoActual = await _productoService.getProducto(
+          productoSeleccionado.idProducto!,
         );
-      }).toList(),
-    );
 
-    try {
-      setState(() {
-        guardando = true;
-      });
+        if (!productoActual.estado) {
+          _mensaje(
+            'El producto ${productoActual.nombreProducto} '
+            'ya no está activo',
+          );
+          return;
+        }
+
+        if (productoActual.stockActual <= 0) {
+          _mensaje(
+            'El producto ${productoActual.nombreProducto} '
+            'ya no tiene stock disponible',
+          );
+          return;
+        }
+
+        if (linea.cantidad > productoActual.stockActual) {
+          _mensaje(
+            'Stock insuficiente para '
+            '${productoActual.nombreProducto}. '
+            'Disponible: ${productoActual.stockActual}',
+          );
+          return;
+        }
+      }
+
+      final request = CrearVentaRequest(
+        idCliente: _clienteSeleccionado!.idCliente,
+        idUsuario: _idUsuarioActual!,
+        idAutorizacion: autorizacion.idAutorizacion!,
+        metodoPago: _metodoPago,
+        ordenCompraExenta: null,
+        constanciaRegistroExonerados: null,
+        registroSag: null,
+        detalles: _lineas.map((linea) {
+          return DetalleVentaRequest(
+            idProducto: linea.producto!.idProducto!,
+            cantidad: linea.cantidad,
+            descuento: linea.descuento,
+          );
+        }).toList(),
+      );
 
       final ventaCreada = await _ventaService.postVenta(request);
 
       await NotificationService.mostrarNotificacion(
         titulo: 'Factura emitida',
         mensaje:
-            'La factura ${ventaCreada.numeroFactura} fue registrada correctamente.',
+            'La factura ${ventaCreada.numeroFactura} '
+            'fue registrada correctamente.',
       );
 
       if (!mounted) return;
@@ -370,12 +438,23 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
+  if (e is DioException) {
+    debugPrint('STATUS: ${e.response?.statusCode}');
+    debugPrint('DATA: ${e.response?.data}');
 
-      setState(() {
-        guardando = false;
-      });
-
-      _mensaje('Error al registrar la venta: $e');
+    _mensaje(
+      e.response?.data?['message'] ??
+          'Error al registrar la venta',
+    );
+  } else {
+    _mensaje('Error al registrar la venta');
+  }
+    } finally {
+      if (mounted) {
+        setState(() {
+          guardando = false;
+        });
+      }
     }
   }
 
@@ -450,7 +529,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
         guardando = false;
       });
 
-      _mensaje('Error al anular la factura: $e');
+      _mensaje('Error al anular la factura');
     }
   }
 

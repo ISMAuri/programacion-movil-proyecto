@@ -86,7 +86,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: Text('Error al cargar estadísticas: $e'),
+            content: Text('Error al cargar estadísticas'),
             backgroundColor: AppColors.error,
           ),
         );

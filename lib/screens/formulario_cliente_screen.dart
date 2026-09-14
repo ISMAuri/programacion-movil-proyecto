@@ -59,7 +59,25 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
       return;
     }
 
-    if (correo.isNotEmpty && (!correo.contains('@') || !correo.contains('.'))) {
+    if (rtn.isNotEmpty && !RegExp(r'^\d{14}$').hasMatch(rtn)) {
+      _mostrarError('El RTN debe contener exactamente 14 dígitos');
+      return;
+    }
+
+    if (direccion.isNotEmpty && direccion.length <= 10) {
+      _mostrarError('La dirección debe tener más de 10 caracteres');
+      return;
+    }
+
+    if (telefono.isNotEmpty && !RegExp(r'^\d{8}$').hasMatch(telefono)) {
+      _mostrarError('El teléfono debe contener exactamente 8 dígitos');
+      return;
+    }
+
+    if (correo.isNotEmpty &&
+        !RegExp(
+          r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
+        ).hasMatch(correo)) {
       _mostrarError('Ingresa un correo electrónico válido');
       return;
     }
@@ -152,7 +170,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
                     controller: _rtnController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'RTN',
+                      labelText: 'RTN (opcional o 14 dígitos)',
                       prefixIcon: Icon(Icons.badge_outlined),
                     ),
                   ),
@@ -160,7 +178,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
                   TextFormField(
                     controller: _direccionController,
                     decoration: const InputDecoration(
-                      labelText: 'Dirección',
+                      labelText: 'Dirección (opcional o más de 10 caracteres)',
                       prefixIcon: Icon(Icons.location_on_outlined),
                     ),
                   ),
@@ -169,7 +187,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
                     controller: _telefonoController,
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(
-                      labelText: 'Teléfono',
+                      labelText: 'Teléfono (opcional o 8 dígitos)',
                       prefixIcon: Icon(Icons.phone_outlined),
                     ),
                   ),
@@ -178,7 +196,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
                     controller: _correoController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
-                      labelText: 'Correo',
+                      labelText: 'Correo (opcional o formato válido)',
                       prefixIcon: Icon(Icons.email_outlined),
                     ),
                   ),

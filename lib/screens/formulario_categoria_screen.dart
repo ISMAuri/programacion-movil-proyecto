@@ -42,6 +42,32 @@ class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
       return;
     }
 
+    if (nombre.length < 3) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text("El nombre debe tener al menos 3 caracteres"),
+            backgroundColor: AppColors.error,
+          ),
+        );
+
+      return;
+    }
+
+    if (descripcion.length < 5) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text("La descripción debe tener al menos 5 caracteres"),
+            backgroundColor: AppColors.error,
+          ),
+        );
+
+      return;
+    }
+
     try {
       if (_esEdicion) {
         final categoriaActualizada = Categoria(
@@ -91,20 +117,6 @@ class _FormularioCategoriaScreenState extends State<FormularioCategoriaScreen> {
         ),
       );
     }
-
-    final mensaje =
-        "Categoría ${_esEdicion ? "actualizada" : "creada"} correctamente";
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
-      );
-
-    Navigator.pop(
-      context,
-      true,
-    ); //Quita la pantalla y devuelve true para indicar que se guardó correctamente.
   }
 
   @override

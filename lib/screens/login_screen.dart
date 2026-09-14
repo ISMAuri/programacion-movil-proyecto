@@ -194,28 +194,28 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
 
                 // Crear cuenta
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "¿No tienes una cuenta? ",
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.center,
+                //   children: [
+                //     Text(
+                //       "¿No tienes una cuenta? ",
+                //       style: TextStyle(color: Colors.grey.shade600),
+                //     ),
 
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/register');
-                      },
-                      child: Text(
-                        "Crear una cuenta",
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                //     TextButton(
+                //       onPressed: () {
+                //         Navigator.pushNamed(context, '/register');
+                //       },
+                //       child: Text(
+                //         "Crear una cuenta",
+                //         style: TextStyle(
+                //           color: AppColors.primary,
+                //           fontWeight: FontWeight.bold,
+                //         ),
+                //       ),
+                //     ),
+                //   ],
+                // ),
               ],
             ),
           ),

@@ -60,7 +60,7 @@ class _HistorialCaiScreenState extends State<HistorialCaiScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Error al cargar el historial de CAI'),
+          content: Text('Error al cargar el historial de CAI'),
           backgroundColor: AppColors.error,
         ),
       );

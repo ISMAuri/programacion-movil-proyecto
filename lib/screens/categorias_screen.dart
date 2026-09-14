@@ -234,26 +234,99 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        if (_nombreController.text.trim().isEmpty) {
+                      onPressed: () async {
+                        final nombre = _nombreController.text.trim();
+                        final descripcion = _descripcionController.text.trim();
+
+                        if (nombre.isEmpty || descripcion.isEmpty) {
+                          final mensaje = nombre.isEmpty && descripcion.isEmpty
+                              ? "Completa el nombre y la descripción"
+                              : nombre.isEmpty
+                              ? "Completa el nombre de la categoría"
+                              : "Completa la descripción de la categoría";
+
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              SnackBar(
+                                content: Text(mensaje),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+
+                          return;
+                        }
+
+                        if (nombre.length < 3) {
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "El nombre debe tener al menos 3 caracteres",
+                                ),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+
+                          return;
+                        }
+
+                        if (descripcion.length < 5) {
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "La descripción debe tener al menos 5 caracteres",
+                                ),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+
                           return;
                         }
 
                         final nuevaCategoria = Categoria(
-                          nombre: _nombreController.text.trim(),
-                          descripcion: _descripcionController.text.trim(),
+                          nombre: nombre,
+                          descripcion: descripcion,
                           activo: estado,
                         );
 
-                        setState(() {
-                          _categoriaService.postCategoria(nuevaCategoria).then((
-                            categoriaCreada,
-                          ) {
+                        try {
+                          final categoriaCreada = await _categoriaService
+                              .postCategoria(nuevaCategoria);
+
+                          if (!mounted) return;
+
+                          setState(() {
                             categorias.add(categoriaCreada);
                           });
-                        });
 
-                        Navigator.pop(context);
+                          if (!context.mounted) return;
+
+                          Navigator.pop(context);
+
+                          ScaffoldMessenger.of(this.context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              const SnackBar(
+                                content: Text("Categoría creada correctamente"),
+                                backgroundColor: AppColors.success,
+                              ),
+                            );
+                        } catch (e) {
+                          if (!context.mounted) return;
+
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              const SnackBar(
+                                content: Text("Error al crear la categoría"),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                        }
                       },
                       child: const Text("Guardar"),
                     ),

@@ -111,7 +111,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
 
       _mostrarMensaje(
-        'Ocurrió un error al registrar el usuario $e',
+        'Ocurrió un error al registrar el usuario',
         AppColors.error,
       );
     } finally {

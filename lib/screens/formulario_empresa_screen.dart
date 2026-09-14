@@ -160,10 +160,19 @@ class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
                               labelText: "Nombre comercial",
                               prefixIcon: Icon(Icons.storefront_outlined),
                             ),
-                            validator: (valor) =>
-                                (valor == null || valor.trim().isEmpty)
-                                ? "Ingresa el nombre de la empresa"
-                                : null,
+                            validator: (valor) {
+                              final texto = valor?.trim() ?? '';
+
+                              if (texto.isEmpty) {
+                                return "Ingresa el nombre de la empresa";
+                              }
+
+                              if (texto.length < 2) {
+                                return "El nombre debe tener al menos 2 caracteres";
+                              }
+
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 14),
                           TextFormField(
@@ -172,6 +181,19 @@ class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
                               labelText: "Razón social",
                               prefixIcon: Icon(Icons.business_outlined),
                             ),
+                            validator: (valor) {
+                              final texto = valor?.trim() ?? '';
+
+                              if (texto.isEmpty) {
+                                return "Ingresa la razón social";
+                              }
+
+                              if (texto.length < 2) {
+                                return "La razón social debe tener al menos 2 caracteres";
+                              }
+
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 14),
                           TextFormField(
@@ -181,6 +203,19 @@ class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
                               labelText: "RTN",
                               prefixIcon: Icon(Icons.badge_outlined),
                             ),
+                            validator: (valor) {
+                              final texto = valor?.trim() ?? '';
+
+                              if (texto.isEmpty) {
+                                return "Ingresa el RTN";
+                              }
+
+                              if (!RegExp(r'^\d{14}$').hasMatch(texto)) {
+                                return "El RTN debe contener exactamente 14 dígitos";
+                              }
+
+                              return null;
+                            },
                           ),
                         ],
                       ),
@@ -210,6 +245,19 @@ class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
                               alignLabelWithHint: true,
                               prefixIcon: Icon(Icons.location_on_outlined),
                             ),
+                            validator: (valor) {
+                              final texto = valor?.trim() ?? '';
+
+                              if (texto.isEmpty) {
+                                return "Ingresa la dirección";
+                              }
+
+                              if (texto.length < 10) {
+                                return "La dirección debe tener al menos 10 caracteres";
+                              }
+
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 14),
                           TextFormField(
@@ -219,6 +267,19 @@ class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
                               labelText: "Teléfono",
                               prefixIcon: Icon(Icons.phone_outlined),
                             ),
+                            validator: (valor) {
+                              final texto = valor?.trim() ?? '';
+
+                              if (texto.isEmpty) {
+                                return "Ingresa el teléfono";
+                              }
+
+                              if (!RegExp(r'^\d{8}$').hasMatch(texto)) {
+                                return "El teléfono debe contener exactamente 8 dígitos";
+                              }
+
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 14),
                           TextFormField(
@@ -229,12 +290,20 @@ class _FormularioEmpresaScreenState extends State<FormularioEmpresaScreen> {
                               prefixIcon: Icon(Icons.email_outlined),
                             ),
                             validator: (valor) {
-                              if (valor == null || valor.trim().isEmpty) {
-                                return null;
+                              final texto = valor?.trim() ?? '';
+
+                              if (texto.isEmpty) {
+                                return "Ingresa el correo electrónico";
                               }
-                              if (!valor.contains("@")) {
-                                return "Correo inválido";
+
+                              final correoValido = RegExp(
+                                r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
+                              ).hasMatch(texto);
+
+                              if (!correoValido) {
+                                return "Ingresa un correo electrónico válido";
                               }
+
                               return null;
                             },
                           ),
