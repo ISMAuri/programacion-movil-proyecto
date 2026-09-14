@@ -97,7 +97,7 @@ class ConfiguracionScreen extends StatelessWidget {
         ),
         OpcionMenuCard(
           icon: Icons.receipt_long_outlined,
-          titulo: "Datos fiscales (CAI)",
+          titulo: "Datos de CAI Vigente",
           subtitulo: "Autorización, rango de facturación y vigencia",
           onTap: () =>
               Navigator.pushNamed(context, "/formulario_datos_fiscales"),
@@ -118,6 +118,30 @@ class ConfiguracionScreen extends StatelessWidget {
             );
           },
         ),
+                OpcionMenuCard(
+          icon: Icons.history_outlined,
+          titulo: "Historial de CAI",
+          subtitulo: "Registro de CAI anteriores y su vigencia",
+          onTap: () =>
+              Navigator.pushNamed(context, "/historial_cai"),
+          onLongPress: () {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return const Dialog(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Text(
+                      'Esta sección permite consultar el historial de CAI (Código de Autorización de Impresión) utilizados por la empresa. Aquí se pueden ver los CAI anteriores, su vigencia y otros datos relacionados. Esta información es útil para llevar un registro de los CAI utilizados y garantizar el cumplimiento de las obligaciones fiscales.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+
 
         const SizedBox(height: 24),
 

@@ -16,6 +16,7 @@ import 'screens/formulario_empresa_screen.dart';
 import 'screens/formulario_usuario_screen.dart';
 import 'screens/formulario_datos_fiscales_screen.dart';
 import 'screens/register_screen.dart';
+import 'screens/historial_cai_screen.dart';
 
 import 'services/notification_service.dart';
 
@@ -60,6 +61,7 @@ class MyApp extends StatelessWidget {
         '/formulario_usuario': (context) => const FormularioUsuarioScreen(),
         '/formulario_datos_fiscales': (context) =>
             const FormularioDatosFiscalesScreen(),
+        '/historial_cai': (context) => const HistorialCaiScreen(),
       },
     );
   }
