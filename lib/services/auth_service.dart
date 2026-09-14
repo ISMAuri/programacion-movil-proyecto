@@ -45,4 +45,11 @@ class AuthService {
 
     return User.fromJson(response.data["user"]);
   }
+
+  Future<void> updatePassword({required String newPassword}) async {
+    await _apiClient.dio.patch(
+      '/auth/me/password',
+      data: {'password': newPassword},
+    );
+  }
 }

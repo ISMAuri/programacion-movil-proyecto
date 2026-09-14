@@ -17,15 +17,15 @@ class _FormularioUsuarioScreenState extends State<FormularioUsuarioScreen> {
   late final TextEditingController _nombreController = TextEditingController();
   late final TextEditingController _correoController = TextEditingController();
   late final TextEditingController _rolController = TextEditingController();
-  // late final TextEditingController _contrasenaController =
-  //     TextEditingController();
-  // late final TextEditingController _confirmarContrasenaController =
-  //     TextEditingController();
+  late final TextEditingController _contrasenaController =
+      TextEditingController();
+  late final TextEditingController _confirmarContrasenaController =
+      TextEditingController();
 
   final AuthService _authService = AuthService();
 
-  // bool _cambiarContrasena = false;
-  // bool _ocultarContrasena = true;
+  bool _cambiarContrasena = false;
+  bool _ocultarContrasena = true;
 
   bool cargando = true;
 
@@ -65,8 +65,8 @@ class _FormularioUsuarioScreenState extends State<FormularioUsuarioScreen> {
   void dispose() {
     _nombreController.dispose();
     _correoController.dispose();
-    // _contrasenaController.dispose();
-    // _confirmarContrasenaController.dispose();
+    _contrasenaController.dispose();
+    _confirmarContrasenaController.dispose();
     super.dispose();
   }
 
@@ -123,6 +123,7 @@ class _FormularioUsuarioScreenState extends State<FormularioUsuarioScreen> {
                               labelText: "Correo electrónico",
                               prefixIcon: Icon(Icons.email_outlined),
                             ),
+
                             validator: (valor) {
                               if (valor == null || valor.trim().isEmpty) {
                                 return "Ingresa tu correo";
@@ -137,13 +138,15 @@ class _FormularioUsuarioScreenState extends State<FormularioUsuarioScreen> {
                           TextFormField(
                             readOnly: true,
                             controller: _rolController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: "Rol",
-                              prefixIcon: Icon(Icons.admin_panel_settings),
+                              prefixIcon: const Icon(Icons.admin_panel_settings),
+                              fillColor: Colors.grey[200],
+                              filled: true,
                             ),
                             validator: (valor) {
                               if (valor == null || valor.trim().isEmpty) {
-                                return "Ingresa el rol";
+                                return "rol";
                               }
                               return null;
                             },
@@ -155,77 +158,77 @@ class _FormularioUsuarioScreenState extends State<FormularioUsuarioScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Card(
-                  //   elevation: 2,
-                  //   color: AppColors.white,
-                  //   shape: RoundedRectangleBorder(
-                  //     borderRadius: BorderRadius.circular(16),
-                  //   ),
-                  //   child: Padding(
-                  //     padding: const EdgeInsets.all(18),
-                  //     child: Column(
-                  //       crossAxisAlignment: CrossAxisAlignment.start,
-                  //       children: [
-                  //         SwitchListTile(
-                  //           contentPadding: EdgeInsets.zero,
-                  //           activeTrackColor: AppColors.primary,
-                  //           title: Text(
-                  //             "Cambiar contraseña",
-                  //             style: AppTextStyles.subtitle,
-                  //           ),
-                  //           value: _cambiarContrasena,
-                  //           onChanged: (valor) =>
-                  //               setState(() => _cambiarContrasena = valor),
-                  //         ),
-                  //         if (_cambiarContrasena) ...[
-                  //           const SizedBox(height: 8),
-                  //           TextFormField(
-                  //             controller: _contrasenaController,
-                  //             obscureText: _ocultarContrasena,
-                  //             decoration: InputDecoration(
-                  //               labelText: "Nueva contraseña",
-                  //               prefixIcon: const Icon(Icons.lock_outline),
-                  //               suffixIcon: IconButton(
-                  //                 icon: Icon(
-                  //                   _ocultarContrasena
-                  //                       ? Icons.visibility_outlined
-                  //                       : Icons.visibility_off_outlined,
-                  //                 ),
-                  //                 onPressed: () => setState(
-                  //                   () => _ocultarContrasena =
-                  //                       !_ocultarContrasena,
-                  //                 ),
-                  //               ),
-                  //             ),
-                  //             validator: (valor) {
-                  //               if (!_cambiarContrasena) return null;
-                  //               if (valor == null || valor.length < 6) {
-                  //                 return "Mínimo 6 caracteres";
-                  //               }
-                  //               return null;
-                  //             },
-                  //           ),
-                  //           const SizedBox(height: 14),
-                  //           TextFormField(
-                  //             controller: _confirmarContrasenaController,
-                  //             obscureText: _ocultarContrasena,
-                  //             decoration: const InputDecoration(
-                  //               labelText: "Confirmar contraseña",
-                  //               prefixIcon: Icon(Icons.lock_outline),
-                  //             ),
-                  //             validator: (valor) {
-                  //               if (!_cambiarContrasena) return null;
-                  //               if (valor != _contrasenaController.text) {
-                  //                 return "Las contraseñas no coinciden";
-                  //               }
-                  //               return null;
-                  //             },
-                  //           ),
-                  //         ],
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
+                  Card(
+                    elevation: 2,
+                    color: AppColors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            activeTrackColor: AppColors.primary,
+                            title: Text(
+                              "Cambiar contraseña",
+                              style: AppTextStyles.subtitle,
+                            ),
+                            value: _cambiarContrasena,
+                            onChanged: (valor) =>
+                                setState(() => _cambiarContrasena = valor),
+                          ),
+                          if (_cambiarContrasena) ...[
+                            const SizedBox(height: 8),
+                            TextFormField(
+                              controller: _contrasenaController,
+                              obscureText: _ocultarContrasena,
+                              decoration: InputDecoration(
+                                labelText: "Nueva contraseña",
+                                prefixIcon: const Icon(Icons.lock_outline),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _ocultarContrasena
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
+                                  ),
+                                  onPressed: () => setState(
+                                    () => _ocultarContrasena =
+                                        !_ocultarContrasena,
+                                  ),
+                                ),
+                              ),
+                              validator: (valor) {
+                                if (!_cambiarContrasena) return null;
+                                if (valor == null || valor.length < 8) {
+                                  return "Mínimo 8 caracteres";
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 14),
+                            TextFormField(
+                              controller: _confirmarContrasenaController,
+                              obscureText: _ocultarContrasena,
+                              decoration: const InputDecoration(
+                                labelText: "Confirmar contraseña",
+                                prefixIcon: Icon(Icons.lock_outline),
+                              ),
+                              validator: (valor) {
+                                if (!_cambiarContrasena) return null;
+                                if (valor != _contrasenaController.text) {
+                                  return "Las contraseñas no coinciden";
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 16),
 
                   // Card(
@@ -256,22 +259,22 @@ class _FormularioUsuarioScreenState extends State<FormularioUsuarioScreen> {
                   // ),
                   const SizedBox(height: 24),
 
-                  // SizedBox(
-                  //   width: double.infinity,
-                  //   height: 50,
-                  //   child: ElevatedButton.icon(
-                  //     onPressed: null,
-                  //     icon: const Icon(Icons.save_outlined),
-                  //     label: const Text("Guardar cambios"),
-                  //     style: ElevatedButton.styleFrom(
-                  //       backgroundColor: AppColors.primary,
-                  //       foregroundColor: AppColors.white,
-                  //       shape: RoundedRectangleBorder(
-                  //         borderRadius: BorderRadius.circular(14),
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: null,
+                      icon: const Icon(Icons.save_outlined),
+                      label: const Text("Guardar cambios"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 15),
                 ],
               ),

@@ -145,8 +145,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       backgroundColor: AppColors.background,
 
       appBar: AppBar(
-        title: const Text('Crear cuenta'),
-        backgroundColor: AppColors.background,
+        title:  Text('Crear cuenta', style: AppTextStyles.screenTitle2.copyWith(color: AppColors.white)),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
         elevation: 0,
       ),
 
@@ -183,7 +184,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 8),
 
                   Text(
-                    'Completa tus datos para registrarte',
+                    'Completa los datos de registro',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
                   ),
@@ -332,14 +333,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   const SizedBox(height: 10),
 
-                  TextButton(
-                    onPressed: loading
-                        ? null
-                        : () {
-                            Navigator.pop(context);
-                          },
-                    child: const Text('Ya tengo una cuenta'),
-                  ),
+                  // TextButton(
+                  //   onPressed: loading
+                  //       ? null
+                  //       : () {
+                  //           Navigator.pop(context);
+                  //         },
+                  //   child: const Text('Ya tengo una cuenta'),
+                  // ),
                 ],
               ),
             ),

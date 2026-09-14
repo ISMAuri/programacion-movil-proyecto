@@ -45,6 +45,29 @@ class ConfiguracionScreen extends StatelessWidget {
           },
         ),
 
+        OpcionMenuCard(
+          icon: Icons.person_add_outlined,
+          titulo: "Crear usuario",
+          subtitulo: "Registrar un nuevo usuario en el sistema",
+          onTap: () => Navigator.pushNamed(context, "/register"),
+          onLongPress: () {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return const Dialog(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Text(
+                      'Esta sección permite registrar un nuevo usuario en el sistema. Aquí se pueden ingresar los datos necesarios para crear la cuenta del nuevo usuario, como su nombre, correo electrónico y contraseña.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+
         const SizedBox(height: 24),
 
         Text("Negocio", style: AppTextStyles.sectionTitle),
@@ -106,10 +129,10 @@ class ConfiguracionScreen extends StatelessWidget {
           titulo: "Cerrar sesión",
           colorIcono: AppColors.error,
           mostrarFlecha: false,
-          onTap: ()  async {
-              await StorageService().deleteToken();
+          onTap: () async {
+            await StorageService().deleteToken();
 
-              if (!context.mounted) return;
+            if (!context.mounted) return;
 
             Navigator.pushNamedAndRemoveUntil(
               context,
