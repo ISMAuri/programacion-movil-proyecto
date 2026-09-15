@@ -24,8 +24,8 @@ class ConfiguracionScreen extends StatelessWidget {
 
         OpcionMenuCard(
           icon: Icons.person_outline,
-          titulo: "Mi usuario",
-          subtitulo: "Nombre y correo electrónico de la cuenta",
+          titulo: "Mi perfil",
+          subtitulo: "Nombre, correo, rol y seguridad de la cuenta",
           onTap: () => Navigator.pushNamed(context, "/formulario_usuario"),
           onLongPress: () {
             showDialog(
@@ -35,7 +35,7 @@ class ConfiguracionScreen extends StatelessWidget {
                   child: Padding(
                     padding: EdgeInsets.all(20),
                     child: Text(
-                      'Esta sección permite administrar y mantener actualizada la información del usuario, incluyendo datos como su nombre, correo electrónico, contraseña y estado dentro del sistema. Desde esta sección se puede modificar la información necesaria para gestionar correctamente el acceso y los datos de la cuenta.',
+                      'Esta sección permite consultar y actualizar el nombre y correo electrónico del usuario, consultar su rol y cambiar la contraseña de la cuenta.',
                       textAlign: TextAlign.center,
                     ),
                   ),

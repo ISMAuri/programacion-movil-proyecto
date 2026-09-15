@@ -31,7 +31,7 @@ class AuthService {
     required String fullName,
     required String email,
     required String password,
-    String role = 'client',
+    String role = 'user',
   }) async {
     final response = await _apiClient.dio.post(
       '/auth/register',
@@ -46,10 +46,24 @@ class AuthService {
     return User.fromJson(response.data["user"]);
   }
 
+  // Actualizar nombre y correo del usuario autenticado
+  Future<User> updateProfile({
+    required String fullName,
+    required String email,
+  }) async {
+    final response = await _apiClient.dio.put(
+      '/auth/me',
+      data: {'fullName': fullName, 'email': email},
+    );
+
+    return User.fromJson(response.data['user']);
+  }
+
+  // Cambiar contraseña del usuario autenticado
   Future<void> updatePassword({required String newPassword}) async {
-    await _apiClient.dio.patch(
+    await _apiClient.dio.put(
       '/auth/me/password',
-      data: {'password': newPassword},
+      data: {'passwordNueva': newPassword},
     );
   }
 }
