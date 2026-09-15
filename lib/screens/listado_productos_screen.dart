@@ -239,10 +239,12 @@ class _ListadoProductosScreenState extends State<ListadoProductosScreen> {
                               'Stock: ${producto.stockActual}',
                               style: AppTextStyles.subtitle.copyWith(
                                 fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: producto.stockActual > 10
-                                    ? AppColors.success
-                                    : AppColors.warning,
+                                fontWeight: FontWeight.w900,
+                                color: producto.stockActual == 0
+                                    ? AppColors.error
+                                    : producto.stockActual <= 10
+                                    ? AppColors.warning
+                                    : AppColors.success,
                               ),
                             ),
                             const SizedBox(height: 4),

@@ -78,7 +78,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         fullName: fullName,
         email: email,
         password: password,
-        role: 'client',
+        role: 'user',
       );
 
       if (!mounted) return;

@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
-
 import '../services/producto_service.dart';
 import '../services/venta_service.dart';
-import '../services/detalle_venta_service.dart';
-
 import '../widgets/estadistica_card.dart';
 import '../widgets/acceso_rapido_card.dart';
 import '../widgets/opcion_menu_card.dart';
@@ -21,12 +18,11 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final ProductoService _productoService = ProductoService();
   final VentaService _ventaService = VentaService();
-  final DetalleVentaService _detalleVentaService = DetalleVentaService();
 
   bool cargando = true;
 
-  int totalProductos = 0;
-  int productosVendidos = 0;
+  int ventasHoy = 0;
+  double facturadoHoy = 0;
   int productosBajoStock = 0;
   int productosAgotados = 0;
 
@@ -36,31 +32,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       final ventas = await _ventaService.getVentas();
 
-      // Solo tomamos en cuenta facturas emitidas.
-      final ventasEmitidas = ventas
-          .where((venta) => venta.estadoFactura)
-          .toList();
+      final ahora = DateTime.now();
 
-      final detallesPorVenta = await Future.wait(
-        ventasEmitidas.map(
-          (venta) => _detalleVentaService.getDetallesPorVenta(venta.idVenta),
-        ),
-      );
+      // Solo contamos ventas emitidas realizadas hoy.
+      final ventasDelDia = ventas.where((venta) {
+        final fecha = venta.fechaVenta.toLocal();
 
-      int cantidadVendida = 0;
+        return venta.estadoFactura &&
+            fecha.year == ahora.year &&
+            fecha.month == ahora.month &&
+            fecha.day == ahora.day;
+      }).toList();
 
-      for (final detalles in detallesPorVenta) {
-        for (final detalle in detalles) {
-          cantidadVendida += detalle.cantidad;
-        }
+      double totalFacturadoHoy = 0;
+
+      for (final venta in ventasDelDia) {
+        totalFacturadoHoy += venta.total;
       }
 
       if (!mounted) return;
 
       setState(() {
-        totalProductos = productos.length;
+        ventasHoy = ventasDelDia.length;
 
-        productosVendidos = cantidadVendida;
+        facturadoHoy = totalFacturadoHoy;
 
         productosBajoStock = productos
             .where(
@@ -86,7 +81,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: Text('Error al cargar estadísticas'),
+            content: const Text('Error al cargar estadísticas'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -96,7 +91,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-
     _cargarEstadisticas();
   }
 
@@ -105,16 +99,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final estadisticas = [
       {
         'color': AppColors.primary,
-        'icon': Icons.inventory_2_outlined,
-        'title': 'Total de Productos',
-        'value': cargando ? '...' : totalProductos.toString(),
-        'routeName': '/listado_productos',
+        'icon': Icons.receipt_long_outlined,
+        'title': 'Ventas de Hoy',
+        'value': cargando ? '...' : ventasHoy.toString(),
+        'routeName': '/ventas',
       },
       {
         'color': AppColors.success,
-        'icon': Icons.check_circle_outlined,
-        'title': 'Productos Vendidos',
-        'value': cargando ? '...' : productosVendidos.toString(),
+        'icon': Icons.payments_outlined,
+        'title': 'Facturado Hoy',
+        'value': cargando ? '...' : 'L ${facturadoHoy.toStringAsFixed(2)}',
         'routeName': '/ventas',
       },
       {
@@ -186,7 +180,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 itemCount: estadisticas.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 1.2,
+                  childAspectRatio: 1.0,
                 ),
                 itemBuilder: (context, index) {
                   final estadistica = estadisticas[index];

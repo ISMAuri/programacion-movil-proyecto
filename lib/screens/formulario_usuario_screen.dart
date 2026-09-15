@@ -187,7 +187,7 @@ class _FormularioUsuarioScreenState extends State<FormularioUsuarioScreen> {
       case 'client':
         return 'Cliente';
       case 'user':
-        return 'Usuario';
+        return 'Empleado';
       default:
         return role;
     }
