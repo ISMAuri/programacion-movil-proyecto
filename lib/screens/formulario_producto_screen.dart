@@ -4,10 +4,11 @@ import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 import '../models/categoria.dart';
 import '../models/producto.dart';
+import '../services/auth_service.dart';
 import '../services/categoria_service.dart';
 import '../services/producto_service.dart';
-
 import '../services/notification_service.dart';
+import '../widgets/aviso_card.dart';
 
 const List<String> _unidadesDisponibles = [
   'Unidad',
@@ -37,6 +38,7 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
 
   final ProductoService _productoService = ProductoService();
   final CategoriaService _categoriaService = CategoriaService();
+  final AuthService _authService = AuthService();
 
   final _nombreController = TextEditingController();
   final _descripcionController = TextEditingController();
@@ -52,9 +54,11 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
 
   String? _unidadSeleccionada = _unidadesDisponibles.first;
   String _tasaSeleccionada = '15%';
+
   bool _estado = true;
   bool _argumentosCargados = false;
   bool cargando = true;
+  bool esAdmin = false;
 
   bool get _esEdicion => _producto != null;
 
@@ -63,6 +67,7 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
     super.didChangeDependencies();
 
     if (_argumentosCargados) return;
+
     _argumentosCargados = true;
 
     _producto = ModalRoute.of(context)?.settings.arguments as Producto?;
@@ -71,10 +76,14 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
       _nombreController.text = _producto!.nombreProducto;
       _descripcionController.text = _producto!.descripcion ?? '';
       _codigoController.text = _producto!.codigoProducto ?? '';
+
       _precioCompraController.text =
           _producto!.precioCompra?.toStringAsFixed(2) ?? '';
+
       _precioVentaController.text = _producto!.precioVenta.toStringAsFixed(2);
+
       _stockController.text = _producto!.stockActual.toString();
+
       _unidadSeleccionada = _producto!.unidadMedida;
 
       if (!_unidadesDisponibles.contains(_unidadSeleccionada)) {
@@ -91,14 +100,16 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
       _estado = _producto!.estado;
     }
 
-    _cargarCategorias();
+    _cargarDatos();
   }
 
-  Future<void> _cargarCategorias() async {
+  Future<void> _cargarDatos() async {
     try {
       final categorias = await _categoriaService.getCategorias(
         soloActivas: false,
       );
+
+      final usuario = await _authService.getCurrentUser();
 
       if (!mounted) return;
 
@@ -123,14 +134,19 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
       setState(() {
         _categorias = categorias;
         _categoriaSeleccionada = seleccionada;
+
+        esAdmin = usuario.role.trim().toLowerCase() == 'admin';
+
         cargando = false;
       });
     } catch (e) {
       if (!mounted) return;
 
-      setState(() => cargando = false);
+      setState(() {
+        cargando = false;
+      });
 
-      _mostrarError('Error al cargar las categorías');
+      _mostrarError('Error al cargar los datos del producto');
     }
   }
 
@@ -153,6 +169,10 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
   }
 
   Future<void> _guardarProducto() async {
+    if (!esAdmin) {
+      return;
+    }
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -277,6 +297,7 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+
       appBar: AppBar(
         title: Text(
           _esEdicion ? 'Editar producto' : 'Nuevo producto',
@@ -285,6 +306,7 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
       ),
+
       body: cargando
           ? const Center(child: CircularProgressIndicator())
           : Form(
@@ -292,6 +314,13 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
+                  if (!esAdmin) ...[
+                    AvisoCard(
+                      text:
+                          'Modo de solo lectura. Solo los administradores pueden modificar la información de los productos.',
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   Card(
                     elevation: 2,
                     color: AppColors.white,
@@ -308,20 +337,26 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
                             Icons.label_outline,
                             requerido: true,
                           ),
+
                           const SizedBox(height: 14),
+
                           _campo(
                             _descripcionController,
                             'Descripción (opcional)',
                             Icons.notes_outlined,
                             lineas: 2,
                           ),
+
                           const SizedBox(height: 14),
+
                           _campo(
                             _codigoController,
                             'Código del producto (opcional)',
                             Icons.qr_code_outlined,
                           ),
+
                           const SizedBox(height: 14),
+
                           DropdownButtonFormField<Categoria>(
                             value: categorias.contains(_categoriaSeleccionada)
                                 ? _categoriaSeleccionada
@@ -338,16 +373,20 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
                                   ),
                                 )
                                 .toList(),
-                            onChanged: (valor) {
-                              setState(() {
-                                _categoriaSeleccionada = valor;
-                              });
-                            },
+                            onChanged: esAdmin
+                                ? (valor) {
+                                    setState(() {
+                                      _categoriaSeleccionada = valor;
+                                    });
+                                  }
+                                : null,
                             validator: (valor) => valor == null
                                 ? 'Selecciona una categoría'
                                 : null,
                           ),
+
                           const SizedBox(height: 14),
+
                           DropdownButtonFormField<String>(
                             value: _unidadSeleccionada,
                             decoration: const InputDecoration(
@@ -362,13 +401,17 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
                                   ),
                                 )
                                 .toList(),
-                            onChanged: (valor) {
-                              setState(() {
-                                _unidadSeleccionada = valor;
-                              });
-                            },
+                            onChanged: esAdmin
+                                ? (valor) {
+                                    setState(() {
+                                      _unidadSeleccionada = valor;
+                                    });
+                                  }
+                                : null,
                           ),
+
                           const SizedBox(height: 14),
+
                           Row(
                             children: [
                               Expanded(
@@ -378,7 +421,9 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
                                   decimal: true,
                                 ),
                               ),
+
                               const SizedBox(width: 12),
+
                               Expanded(
                                 child: _campoNumero(
                                   _precioVentaController,
@@ -389,7 +434,9 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
                               ),
                             ],
                           ),
+
                           const SizedBox(height: 14),
+
                           DropdownButtonFormField<String>(
                             value: _tasaSeleccionada,
                             decoration: const InputDecoration(
@@ -404,23 +451,32 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
                                   ),
                                 )
                                 .toList(),
-                            onChanged: (valor) {
-                              if (valor == null) return;
+                            onChanged: esAdmin
+                                ? (valor) {
+                                    if (valor == null) {
+                                      return;
+                                    }
 
-                              setState(() {
-                                _tasaSeleccionada = valor;
-                              });
-                            },
+                                    setState(() {
+                                      _tasaSeleccionada = valor;
+                                    });
+                                  }
+                                : null,
                           ),
+
                           const SizedBox(height: 14),
+
                           _campoNumero(
                             _stockController,
                             'Stock',
                             requerido: true,
                           ),
+
                           SwitchListTile(
                             contentPadding: EdgeInsets.zero,
-                            activeTrackColor: _esEdicion
+                            activeTrackColor: !esAdmin
+                                ? AppColors.disabled
+                                : _esEdicion
                                 ? AppColors.success
                                 : AppColors.disabled,
                             title: Text(
@@ -436,7 +492,7 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
                               ),
                             ),
                             value: _esEdicion ? _estado : true,
-                            onChanged: _esEdicion
+                            onChanged: esAdmin && _esEdicion
                                 ? (valor) {
                                     setState(() {
                                       _estado = valor;
@@ -448,11 +504,13 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 24),
+
                   SizedBox(
                     height: 50,
                     child: ElevatedButton.icon(
-                      onPressed: _guardarProducto,
+                      onPressed: esAdmin ? _guardarProducto : null,
                       icon: Icon(_esEdicion ? Icons.save_outlined : Icons.add),
                       label: Text(
                         _esEdicion ? 'Guardar cambios' : 'Crear producto',
@@ -481,6 +539,10 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
   }) {
     return TextFormField(
       controller: controller,
+
+      // Solo el administrador puede modificar.
+      enabled: esAdmin,
+
       maxLines: lineas,
       decoration: InputDecoration(labelText: etiqueta, prefixIcon: Icon(icono)),
       validator: requerido
@@ -503,6 +565,10 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
   }) {
     return TextFormField(
       controller: controller,
+
+      // Solo el administrador puede modificar.
+      enabled: esAdmin,
+
       keyboardType: TextInputType.numberWithOptions(decimal: decimal),
       decoration: InputDecoration(
         labelText: etiqueta,
@@ -531,6 +597,7 @@ class _FormularioProductoScreenState extends State<FormularioProductoScreen> {
     _precioCompraController.dispose();
     _precioVentaController.dispose();
     _stockController.dispose();
+
     super.dispose();
   }
 }

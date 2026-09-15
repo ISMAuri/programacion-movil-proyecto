@@ -5,6 +5,7 @@ import 'dashboard_screen.dart';
 import 'listado_productos_screen.dart';
 import 'configuracion_screen.dart';
 import '../services/storage_service.dart';
+import '../services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,6 +16,29 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  final AuthService _authService = AuthService();
+
+  bool esAdmin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarUsuario();
+  }
+
+  Future<void> _cargarUsuario() async {
+    try {
+      final usuario = await _authService.getCurrentUser();
+
+      if (!mounted) return;
+
+      setState(() {
+        esAdmin = usuario.role.trim().toLowerCase() == 'admin';
+      });
+    } catch (e) {
+      debugPrint('Error al cargar rol del usuario: $e');
+    }
+  }
 
   final List<Widget> _secciones = const [
     DashboardScreen(),
@@ -71,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButton: _selectedIndex == 1
+      floatingActionButton: _selectedIndex == 1 && esAdmin
           ? FloatingActionButton(
               onPressed: () =>
                   Navigator.pushNamed(context, "/formulario_producto"),
@@ -207,11 +231,10 @@ class Menu extends StatelessWidget {
               style: TextStyle(color: AppColors.error),
             ),
             onTap: () async {
-
               await StorageService().deleteToken();
 
               if (!context.mounted) return;
-              
+
               Navigator.pushNamedAndRemoveUntil(
                 context,
                 "/login",
