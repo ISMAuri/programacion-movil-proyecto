@@ -1,11 +1,44 @@
 import 'package:flutter/material.dart';
+
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 import '../widgets/opcion_menu_card.dart';
 import '../services/storage_service.dart';
+import '../services/auth_service.dart';
 
-class ConfiguracionScreen extends StatelessWidget {
+class ConfiguracionScreen extends StatefulWidget {
   const ConfiguracionScreen({super.key});
+
+  @override
+  State<ConfiguracionScreen> createState() => _ConfiguracionScreenState();
+}
+
+class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
+  final AuthService _authService = AuthService();
+
+  bool esAdmin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarUsuario();
+  }
+
+  Future<void> _cargarUsuario() async {
+    try {
+      final usuario = await _authService.getCurrentUser().timeout(
+        const Duration(seconds: 5),
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        esAdmin = usuario.role == 'admin';
+      });
+    } catch (e) {
+      debugPrint('Error al cargar rol del usuario: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +53,7 @@ class ConfiguracionScreen extends StatelessWidget {
         const SizedBox(height: 24),
 
         Text("Cuenta", style: AppTextStyles.sectionTitle),
+
         const SizedBox(height: 10),
 
         OpcionMenuCard(
@@ -45,107 +79,112 @@ class ConfiguracionScreen extends StatelessWidget {
           },
         ),
 
-        OpcionMenuCard(
-          icon: Icons.person_add_outlined,
-          titulo: "Crear usuario",
-          subtitulo: "Registrar un nuevo usuario en el sistema",
-          onTap: () => Navigator.pushNamed(context, "/register"),
-          onLongPress: () {
-            showDialog(
-              context: context,
-              builder: (context) {
-                return const Dialog(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Text(
-                      'Esta sección permite registrar un nuevo usuario en el sistema. Aquí se pueden ingresar los datos necesarios para crear la cuenta del nuevo usuario, como su nombre, correo electrónico y contraseña.',
-                      textAlign: TextAlign.center,
+        if (esAdmin)
+          OpcionMenuCard(
+            icon: Icons.person_add_outlined,
+            titulo: "Crear usuario",
+            subtitulo: "Registrar un nuevo usuario en el sistema",
+            onTap: () => Navigator.pushNamed(context, "/register"),
+            onLongPress: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return const Dialog(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text(
+                        'Esta sección permite registrar un nuevo usuario en el sistema. Aquí se pueden ingresar los datos necesarios para crear la cuenta del nuevo usuario, como su nombre, correo electrónico y contraseña.',
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
+                  );
+                },
+              );
+            },
+          ),
 
-        const SizedBox(height: 24),
+        if (esAdmin) ...[
+          const SizedBox(height: 24),
 
-        Text("Negocio", style: AppTextStyles.sectionTitle),
-        const SizedBox(height: 10),
+          Text("Negocio", style: AppTextStyles.sectionTitle),
 
-        OpcionMenuCard(
-          icon: Icons.storefront_outlined,
-          titulo: "Datos de la empresa",
-          subtitulo: "Nombre, razón social, RTN, contacto y logo",
-          onTap: () => Navigator.pushNamed(context, "/formulario_empresa"),
-          onLongPress: () {
-            showDialog(
-              context: context,
-              builder: (context) {
-                return const Dialog(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Text(
-                      'Esta sección permite administrar y mantener actualizada la información general de la empresa. Aquí se pueden consultar y modificar datos importantes como el nombre comercial, razón social, RTN, dirección, número de teléfono y correo electrónico. Esta información es utilizada dentro del sistema para identificar correctamente a la empresa y es necesaria para la generación de facturas.',
-                      textAlign: TextAlign.center,
+          const SizedBox(height: 10),
+
+          OpcionMenuCard(
+            icon: Icons.storefront_outlined,
+            titulo: "Datos de la empresa",
+            subtitulo: "Nombre, razón social, RTN, contacto y logo",
+            onTap: () => Navigator.pushNamed(context, "/formulario_empresa"),
+            onLongPress: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return const Dialog(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text(
+                        'Esta sección permite administrar y mantener actualizada la información general de la empresa. Aquí se pueden consultar y modificar datos importantes como el nombre comercial, razón social, RTN, dirección, número de teléfono y correo electrónico. Esta información es utilizada dentro del sistema para identificar correctamente a la empresa y es necesaria para la generación de facturas.',
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-        OpcionMenuCard(
-          icon: Icons.receipt_long_outlined,
-          titulo: "Datos de CAI Vigente",
-          subtitulo: "Autorización, rango de facturación y vigencia",
-          onTap: () =>
-              Navigator.pushNamed(context, "/formulario_datos_fiscales"),
-          onLongPress: () {
-            showDialog(
-              context: context,
-              builder: (context) {
-                return const Dialog(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Text(
-                      'Este apartado permite administrar y mantener actualizada la información fiscal de la empresa. Aquí se pueden consultar y modificar datos importantes como vigencia del CAI (Código de Autorización de Impresión), rango autorizado y otros datos relacionados. Esta información es utilizada dentro del sistema para garantizar el cumplimiento de las obligaciones fiscales y la generación de facturas.',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-                OpcionMenuCard(
-          icon: Icons.history_outlined,
-          titulo: "Historial de CAI",
-          subtitulo: "Registro de CAI anteriores y su vigencia",
-          onTap: () =>
-              Navigator.pushNamed(context, "/historial_cai"),
-          onLongPress: () {
-            showDialog(
-              context: context,
-              builder: (context) {
-                return const Dialog(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Text(
-                      'Esta sección permite consultar el historial de CAI (Código de Autorización de Impresión) utilizados por la empresa. Aquí se pueden ver los CAI anteriores, su vigencia y otros datos relacionados. Esta información es útil para llevar un registro de los CAI utilizados y garantizar el cumplimiento de las obligaciones fiscales.',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
+                  );
+                },
+              );
+            },
+          ),
 
+          OpcionMenuCard(
+            icon: Icons.receipt_long_outlined,
+            titulo: "Datos de CAI Vigente",
+            subtitulo: "Autorización, rango de facturación y vigencia",
+            onTap: () =>
+                Navigator.pushNamed(context, "/formulario_datos_fiscales"),
+            onLongPress: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return const Dialog(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text(
+                        'Este apartado permite administrar y mantener actualizada la información fiscal de la empresa. Aquí se pueden consultar y modificar datos importantes como vigencia del CAI (Código de Autorización de Impresión), rango autorizado y otros datos relacionados. Esta información es utilizada dentro del sistema para garantizar el cumplimiento de las obligaciones fiscales y la generación de facturas.',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+
+          OpcionMenuCard(
+            icon: Icons.history_outlined,
+            titulo: "Historial de CAI",
+            subtitulo: "Registro de CAI anteriores y su vigencia",
+            onTap: () => Navigator.pushNamed(context, "/historial_cai"),
+            onLongPress: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return const Dialog(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text(
+                        'Esta sección permite consultar el historial de CAI (Código de Autorización de Impresión) utilizados por la empresa. Aquí se pueden ver los CAI anteriores, su vigencia y otros datos relacionados. Esta información es útil para llevar un registro de los CAI utilizados y garantizar el cumplimiento de las obligaciones fiscales.',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
 
         const SizedBox(height: 24),
 
         Text("Aplicación", style: AppTextStyles.sectionTitle),
+
         const SizedBox(height: 10),
 
         OpcionMenuCard(
