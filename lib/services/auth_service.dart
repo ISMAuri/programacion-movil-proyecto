@@ -66,4 +66,33 @@ class AuthService {
       data: {'passwordNueva': newPassword},
     );
   }
+
+  Future<String> solicitarOtpPassword({required String email}) async {
+    final response = await _apiClient.dio.post(
+      '/auth/password/otp',
+      data: {'email': email},
+    );
+
+    return response.data['recoveryId'] as String;
+  }
+
+  Future<void> verificarOtpPassword({
+    required String recoveryId,
+    required String otp,
+  }) async {
+    await _apiClient.dio.post(
+      '/auth/password/otp/verify',
+      data: {'recoveryId': recoveryId, 'otp': otp},
+    );
+  }
+
+  Future<void> restablecerPassword({
+    required String recoveryId,
+    required String passwordNueva,
+  }) async {
+    await _apiClient.dio.put(
+      '/auth/password/reset',
+      data: {'recoveryId': recoveryId, 'passwordNueva': passwordNueva},
+    );
+  }
 }
