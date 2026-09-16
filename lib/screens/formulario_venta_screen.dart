@@ -91,6 +91,7 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
   bool cargando = true;
   bool guardando = false;
   bool _argumentosCargados = false;
+  bool esAdmin = false;
 
   bool get _soloLectura => _venta != null;
 
@@ -115,6 +116,8 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
 
   Future<void> _cargarDatos() async {
     try {
+      final usuario = await _authService.getCurrentUser();
+
       if (_soloLectura) {
         final venta = _venta!;
 
@@ -126,6 +129,9 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
 
         setState(() {
           _detallesLectura = detalles;
+
+          esAdmin = usuario.role.trim().toLowerCase() == 'admin';
+
           cargando = false;
         });
 
@@ -136,8 +142,6 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
 
       final productos = await _productoService.getProductos(soloActivos: true);
 
-      final usuario = await _authService.getCurrentUser();
-
       final autorizacion = await _autorizacionFacturaService
           .getAutorizacionActivaEmpresa(_idEmpresa);
 
@@ -145,11 +149,15 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
 
       setState(() {
         _clientes = clientes;
+
         _productos = productos
             .where((producto) => producto.estado && producto.stockActual > 0)
             .toList();
 
         _idUsuarioActual = usuario.id;
+
+        esAdmin = usuario.role.trim().toLowerCase() == 'admin';
+
         _autorizacionActiva = autorizacion;
 
         cargando = false;
@@ -438,17 +446,14 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-  if (e is DioException) {
-    debugPrint('STATUS: ${e.response?.statusCode}');
-    debugPrint('DATA: ${e.response?.data}');
+      if (e is DioException) {
+        debugPrint('STATUS: ${e.response?.statusCode}');
+        debugPrint('DATA: ${e.response?.data}');
 
-    _mensaje(
-      e.response?.data?['message'] ??
-          'Error al registrar la venta',
-    );
-  } else {
-    _mensaje('Error al registrar la venta');
-  }
+        _mensaje(e.response?.data?['message'] ?? 'Error al registrar la venta');
+      } else {
+        _mensaje('Error al registrar la venta');
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -459,6 +464,11 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
   }
 
   Future<void> _anularFactura() async {
+    if (!esAdmin) {
+      _mensaje('Solo un administrador puede anular facturas.');
+      return;
+    }
+
     final venta = _venta;
 
     if (venta == null || !venta.estadoFactura) {
@@ -570,8 +580,9 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
         children: [
           if (venta != null)
             AvisoCard(
-              text:
-                  'Si han pasado más de 30 días posteriores a la emisión de la factura, esta no podrá ser anulada.',
+              text: esAdmin
+                  ? 'Si han pasado más de 30 días posteriores a la emisión de la factura, esta no podrá ser anulada.'
+                  : 'Modo de consulta. Solo los administradores pueden anular facturas.',
             ),
           const SizedBox(height: 16),
           if (venta != null) ...[
@@ -910,6 +921,8 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
         venta != null &&
         DateTime.now().difference(venta.fechaVenta).inDays >= 30;
 
+    final puedeAnular = esAdmin && !anulada && !fueraPlazo;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
       color: AppColors.white,
@@ -921,9 +934,11 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
             onPressed: guardando
                 ? null
                 : _soloLectura
-                ? (anulada || fueraPlazo ? null : _anularFactura)
+                ? (puedeAnular ? _anularFactura : null)
                 : _registrarVenta,
+
             icon: Icon(_soloLectura ? Icons.block : Icons.point_of_sale),
+
             label: Text(
               guardando
                   ? 'Procesando...'
@@ -932,14 +947,23 @@ class _FormularioVentaScreenState extends State<FormularioVentaScreen> {
                         ? 'Factura anulada'
                         : fueraPlazo
                         ? 'Plazo de anulación vencido'
+                        : !esAdmin
+                        ? 'Solo administrador puede anular'
                         : 'Anular factura'
                   : 'Registrar venta',
             ),
+
             style: ElevatedButton.styleFrom(
               backgroundColor: _soloLectura
                   ? AppColors.error
                   : AppColors.primary,
+
+              disabledBackgroundColor: AppColors.disabled,
+
               foregroundColor: AppColors.white,
+
+              disabledForegroundColor: AppColors.white,
+
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),

@@ -6,6 +6,8 @@ import '../models/categoria.dart';
 import '../widgets/categoria_card.dart';
 import '../services/categoria_service.dart';
 
+import '../services/auth_service.dart';
+
 class CategoriasScreen extends StatefulWidget {
   const CategoriasScreen({super.key});
 
@@ -16,6 +18,8 @@ class CategoriasScreen extends StatefulWidget {
 class _CategoriasScreenState extends State<CategoriasScreen> {
   final CategoriaService _categoriaService = CategoriaService();
 
+  final AuthService _authService = AuthService();
+
   List<Categoria> categorias = [];
 
   final _nombreController = TextEditingController();
@@ -24,11 +28,27 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
   String _busqueda = '';
 
   bool cargando = true;
+  bool esAdmin = false;
 
   @override
   void initState() {
     super.initState();
+    _cargarUsuario();
     _cargarCategorias();
+  }
+
+  Future<void> _cargarUsuario() async {
+    try {
+      final usuario = await _authService.getCurrentUser();
+
+      if (!mounted) return;
+
+      setState(() {
+        esAdmin = usuario.role.trim().toLowerCase() == 'admin';
+      });
+    } catch (e) {
+      debugPrint('Error al cargar rol del usuario: $e');
+    }
   }
 
   Future<void> _cargarCategorias() async {
@@ -401,7 +421,10 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
 
                             return Dismissible(
                               key: ValueKey(categoria.id),
-                              direction: DismissDirection.horizontal,
+                              // Permitir deslizar solo si el usuario es admin
+                              direction: esAdmin
+                                  ? DismissDirection.horizontal
+                                  : DismissDirection.none,
 
                               // Deslizar hacia la derecha = Editar
                               background: Container(
@@ -449,6 +472,10 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
                               ),
 
                               confirmDismiss: (direction) async {
+                                if (!esAdmin) {
+                                  return false;
+                                }
+
                                 if (direction == DismissDirection.startToEnd) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
@@ -511,6 +538,7 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
                               child: _CategoriaItem(
                                 categoria: categoria,
                                 icono: _obtenerIcono(categoria),
+                                esAdmin: esAdmin,
                                 onTap: () {
                                   _abrirFormularioEdicion(context, categoria);
                                 },
@@ -524,21 +552,24 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
                 ),
               ],
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          _mostrarFormularioCategoria(context);
-        },
-        backgroundColor: AppColors.secondary,
-        foregroundColor: AppColors.white,
-        icon: const Icon(Icons.add),
-        label: const Text("Nueva categoría"),
-      ),
+      floatingActionButton: esAdmin
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                _mostrarFormularioCategoria(context);
+              },
+              backgroundColor: AppColors.secondary,
+              foregroundColor: AppColors.white,
+              icon: const Icon(Icons.add),
+              label: const Text("Nueva categoría"),
+            )
+          : null,
     );
   }
 }
 
 class _CategoriaItem extends StatelessWidget {
   final Categoria categoria;
+  final bool esAdmin;
   final IconData icono;
   final VoidCallback onTap;
   final VoidCallback onEliminar;
@@ -546,6 +577,7 @@ class _CategoriaItem extends StatelessWidget {
   const _CategoriaItem({
     required this.categoria,
     required this.icono,
+    required this.esAdmin,
     required this.onTap,
     required this.onEliminar,
   });
@@ -555,48 +587,49 @@ class _CategoriaItem extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
 
-      // Tocar normalmente -> editar
+      // Tocar normalmente -> abrir categoría
       onTap: onTap,
 
-      // Mantener presionado -> eliminar
-      onLongPress: () {
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text("Eliminar categoría"),
-              content: Text(
-                "¿Estás seguro de que deseas eliminar "
-                "\"${categoria.nombre}\"?",
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Cancelar"),
-                ),
-
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-
-                    onEliminar();
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("${categoria.nombre} eliminada"),
-                        backgroundColor: AppColors.error,
+      // Solo el administrador puede desactivar
+      onLongPress: esAdmin
+          ? () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text("Eliminar categoría"),
+                    content: Text(
+                      '¿Estás seguro de que deseas eliminar '
+                      '"${categoria.nombre}"?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text("Cancelar"),
                       ),
-                    );
-                  },
-                  child: const Text("Eliminar"),
-                ),
-              ],
-            );
-          },
-        );
-      },
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+
+                          onEliminar();
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("${categoria.nombre} eliminada"),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                        },
+                        child: const Text("Eliminar"),
+                      ),
+                    ],
+                  );
+                },
+              );
+            }
+          : null,
 
       child: Stack(
         children: [
