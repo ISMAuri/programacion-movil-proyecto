@@ -1,9 +1,10 @@
+import '../utils/json_utils.dart';
+
 class Producto {
   final int? idProducto;
   final int idCategoria;
   final String nombreProducto;
   final String? descripcion;
-  final String? rutaFoto;
   final String? codigoProducto;
   final double? precioCompra;
   final double precioVenta;
@@ -17,7 +18,6 @@ class Producto {
     required this.idCategoria,
     required this.nombreProducto,
     this.descripcion,
-    this.rutaFoto,
     this.codigoProducto,
     this.precioCompra,
     required this.precioVenta,
@@ -31,16 +31,30 @@ class Producto {
     return Producto(
       idProducto: json['id_producto'],
       idCategoria: json['id_categoria'],
-      nombreProducto: json['nombre_producto'],
+      nombreProducto: json['nombre_producto'] ?? '',
       descripcion: json['descripcion'],
-      rutaFoto: json['ruta_foto'],
       codigoProducto: json['codigo_producto'],
-      precioCompra: (json['precio_compra'] as num?)?.toDouble(),
-      precioVenta: (json['precio_venta'] as num).toDouble(),
+      precioCompra: jsonToNullableDouble(json['precio_compra']),
+      precioVenta: jsonToDouble(json['precio_venta']),
       stockActual: json['stock_actual'] ?? 0,
       unidadMedida: json['unidad_medida'],
-      tasaImpuesto: (json['tasa_impuesto'] as num?)?.toDouble() ?? 15.0,
-      estado: json['estado'] == 1 || json['estado'] == true,
+      tasaImpuesto: jsonToDouble(json['tasa_impuesto']),
+      estado: jsonToBool(json['estado']),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id_categoria': idCategoria,
+      'nombre_producto': nombreProducto,
+      'descripcion': descripcion,
+      'codigo_producto': codigoProducto,
+      'precio_compra': precioCompra,
+      'precio_venta': precioVenta,
+      'stock_actual': stockActual,
+      'unidad_medida': unidadMedida,
+      'tasa_impuesto': tasaImpuesto,
+      'estado': estado,
+    };
   }
 }

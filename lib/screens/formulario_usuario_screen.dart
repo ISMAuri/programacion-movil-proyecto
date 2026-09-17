@@ -1,19 +1,13 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+
+import 'package:programacion_movil_proyecto/services/auth_service.dart';
+
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 
 class FormularioUsuarioScreen extends StatefulWidget {
-  const FormularioUsuarioScreen({
-    super.key,
-    this.nombreUsuario,
-    this.correo,
-    this.activo,
-  });
-
-  // Pantalla siempre en modo edición: representa al usuario con sesión activa.
-  final String? nombreUsuario;
-  final String? correo;
-  final bool? activo;
+  const FormularioUsuarioScreen({super.key});
 
   @override
   State<FormularioUsuarioScreen> createState() =>
@@ -21,39 +15,220 @@ class FormularioUsuarioScreen extends StatefulWidget {
 }
 
 class _FormularioUsuarioScreenState extends State<FormularioUsuarioScreen> {
-  final _formKey = GlobalKey<FormState>();
+  final _perfilFormKey = GlobalKey<FormState>();
+  final _passwordFormKey = GlobalKey<FormState>();
 
-  late final TextEditingController _nombreController;
-  late final TextEditingController _correoController;
-  late final TextEditingController _contrasenaController;
-  late final TextEditingController _confirmarContrasenaController;
+  final TextEditingController _nombreController = TextEditingController();
+  final TextEditingController _correoController = TextEditingController();
+  final TextEditingController _rolController = TextEditingController();
 
+  final TextEditingController _contrasenaController = TextEditingController();
+  final TextEditingController _confirmarContrasenaController =
+      TextEditingController();
+
+  final AuthService _authService = AuthService();
+
+  bool cargando = true;
+  bool guardandoPerfil = false;
+  bool guardandoPassword = false;
+
+  bool _editandoPerfil = false;
   bool _cambiarContrasena = false;
+
   bool _ocultarContrasena = true;
-  late bool _activo;
+  bool _ocultarConfirmacion = true;
+
+  String _nombreOriginal = '';
+  String _correoOriginal = '';
 
   @override
   void initState() {
     super.initState();
-    _nombreController = TextEditingController(text: widget.nombreUsuario ?? "");
-    _correoController = TextEditingController(text: widget.correo ?? "");
-    _contrasenaController = TextEditingController();
-    _confirmarContrasenaController = TextEditingController();
-    _activo = widget.activo ?? true;
+    _cargarUsuarioActual();
   }
 
   @override
   void dispose() {
     _nombreController.dispose();
     _correoController.dispose();
+    _rolController.dispose();
     _contrasenaController.dispose();
     _confirmarContrasenaController.dispose();
+
     super.dispose();
   }
 
-  void _guardar() {
-    if (!_formKey.currentState!.validate()) return;
-    // Validar y guardar los cambios del usuario (y contraseña si aplica)
+  Future<void> _cargarUsuarioActual() async {
+    try {
+      final usuario = await _authService.getCurrentUser();
+
+      if (!mounted) return;
+
+      setState(() {
+        _nombreController.text = usuario.fullName;
+        _correoController.text = usuario.email;
+        _rolController.text = _nombreRol(usuario.role);
+
+        _nombreOriginal = usuario.fullName;
+        _correoOriginal = usuario.email;
+
+        cargando = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        cargando = false;
+      });
+
+      _mostrarError(
+        _obtenerMensajeError(e, 'No se pudo cargar la información del usuario'),
+      );
+    }
+  }
+
+  Future<void> _guardarPerfil() async {
+    if (!_perfilFormKey.currentState!.validate()) {
+      return;
+    }
+
+    if (guardandoPerfil) return;
+
+    setState(() {
+      guardandoPerfil = true;
+    });
+
+    try {
+      final usuario = await _authService.updateProfile(
+        fullName: _nombreController.text.trim(),
+        email: _correoController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _nombreController.text = usuario.fullName;
+        _correoController.text = usuario.email;
+        _rolController.text = _nombreRol(usuario.role);
+
+        _nombreOriginal = usuario.fullName;
+        _correoOriginal = usuario.email;
+
+        _editandoPerfil = false;
+        guardandoPerfil = false;
+      });
+
+      _mostrarExito('Perfil actualizado correctamente');
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        guardandoPerfil = false;
+      });
+
+      _mostrarError(_obtenerMensajeError(e, 'No se pudo actualizar el perfil'));
+    }
+  }
+
+  Future<void> _guardarPassword() async {
+    if (!_passwordFormKey.currentState!.validate()) {
+      return;
+    }
+
+    if (guardandoPassword) return;
+
+    setState(() {
+      guardandoPassword = true;
+    });
+
+    try {
+      await _authService.updatePassword(
+        newPassword: _contrasenaController.text,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        guardandoPassword = false;
+        _cambiarContrasena = false;
+
+        _contrasenaController.clear();
+        _confirmarContrasenaController.clear();
+      });
+
+      _mostrarExito('Contraseña actualizada correctamente');
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        guardandoPassword = false;
+      });
+
+      _mostrarError(
+        _obtenerMensajeError(e, 'No se pudo actualizar la contraseña'),
+      );
+    }
+  }
+
+  void _cancelarEdicion() {
+    setState(() {
+      _nombreController.text = _nombreOriginal;
+      _correoController.text = _correoOriginal;
+      _editandoPerfil = false;
+    });
+  }
+
+  String _nombreRol(String role) {
+    switch (role) {
+      case 'admin':
+        return 'Administrador';
+      case 'provider':
+        return 'Proveedor';
+      case 'client':
+        return 'Cliente';
+      case 'user':
+        return 'Empleado';
+      default:
+        return role;
+    }
+  }
+
+  String _obtenerMensajeError(Object error, String mensajePorDefecto) {
+    if (error is DioException) {
+      final data = error.response?.data;
+
+      if (data is Map && data['message'] != null) {
+        return data['message'].toString();
+      }
+
+      if (data is Map &&
+          data['errors'] is List &&
+          (data['errors'] as List).isNotEmpty) {
+        final primerError = (data['errors'] as List).first;
+
+        if (primerError is Map && primerError['message'] != null) {
+          return primerError['message'].toString();
+        }
+      }
+    }
+
+    return mensajePorDefecto;
+  }
+
+  void _mostrarExito(String mensaje) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
+      );
+  }
+
+  void _mostrarError(String mensaje) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(mensaje), backgroundColor: AppColors.error),
+      );
   }
 
   @override
@@ -61,183 +236,340 @@ class _FormularioUsuarioScreenState extends State<FormularioUsuarioScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text("Mi usuario", style: AppTextStyles.screenTitle),
+        title: Text('Mi perfil', style: AppTextStyles.screenTitle),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            Card(
-              elevation: 2,
-              color: AppColors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Información personal",
+      body: cargando
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                _buildInformacionPersonal(),
+
+                const SizedBox(height: 16),
+
+                _buildSeguridad(),
+
+                const SizedBox(height: 20),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildInformacionPersonal() {
+    return Form(
+      key: _perfilFormKey,
+      child: Card(
+        elevation: 2,
+        color: AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Información personal',
                       style: AppTextStyles.sectionTitle,
                     ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: _nombreController,
-                      decoration: const InputDecoration(
-                        labelText: "Nombre de usuario",
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
-                      validator: (valor) =>
-                          (valor == null || valor.trim().isEmpty)
-                          ? "Ingresa tu nombre"
-                          : null,
-                    ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: _correoController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: "Correo electrónico",
-                        prefixIcon: Icon(Icons.email_outlined),
-                      ),
-                      validator: (valor) {
-                        if (valor == null || valor.trim().isEmpty) {
-                          return "Ingresa tu correo";
-                        }
-                        if (!valor.contains("@")) return "Correo inválido";
-                        return null;
+                  ),
+
+                  if (!_editandoPerfil)
+                    IconButton(
+                      tooltip: 'Editar perfil',
+                      onPressed: () {
+                        setState(() {
+                          _editandoPerfil = true;
+                        });
                       },
+                      icon: const Icon(Icons.edit_outlined),
                     ),
-                  ],
+                ],
+              ),
+
+              const SizedBox(height: 14),
+
+              TextFormField(
+                controller: _nombreController,
+                readOnly: !_editandoPerfil,
+                textCapitalization: TextCapitalization.words,
+                decoration: InputDecoration(
+                  labelText: 'Nombre de usuario',
+                  prefixIcon: const Icon(Icons.person_outline),
+                  filled: !_editandoPerfil,
+                  fillColor: !_editandoPerfil ? Colors.grey[200] : null,
+                ),
+                validator: (valor) {
+                  final texto = valor?.trim() ?? '';
+
+                  if (texto.isEmpty) {
+                    return 'Ingresa tu nombre';
+                  }
+
+                  if (texto.length < 3) {
+                    return 'El nombre debe tener al menos 3 caracteres';
+                  }
+
+                  if (texto.length > 150) {
+                    return 'El nombre no puede superar 150 caracteres';
+                  }
+
+                  return null;
+                },
+              ),
+
+              const SizedBox(height: 14),
+
+              TextFormField(
+                controller: _correoController,
+                readOnly: !_editandoPerfil,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: 'Correo electrónico',
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  filled: !_editandoPerfil,
+                  fillColor: !_editandoPerfil ? Colors.grey[200] : null,
+                ),
+                validator: (valor) {
+                  final texto = valor?.trim() ?? '';
+
+                  if (texto.isEmpty) {
+                    return 'Ingresa tu correo';
+                  }
+
+                  final correoValido = RegExp(
+                    r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                  ).hasMatch(texto);
+
+                  if (!correoValido) {
+                    return 'Ingresa un correo válido';
+                  }
+
+                  return null;
+                },
+              ),
+
+              const SizedBox(height: 14),
+
+              TextFormField(
+                controller: _rolController,
+                readOnly: true,
+                decoration: InputDecoration(
+                  labelText: 'Rol',
+                  prefixIcon: const Icon(Icons.admin_panel_settings_outlined),
+                  fillColor: Colors.grey[200],
+                  filled: true,
                 ),
               ),
-            ),
 
-            const SizedBox(height: 16),
+              if (_editandoPerfil) ...[
+                const SizedBox(height: 20),
 
-            Card(
-              elevation: 2,
-              color: AppColors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      activeTrackColor: AppColors.primary,
-                      title: Text(
-                        "Cambiar contraseña",
-                        style: AppTextStyles.subtitle,
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: guardandoPerfil ? null : _cancelarEdicion,
+                        child: const Text('Cancelar'),
                       ),
-                      value: _cambiarContrasena,
-                      onChanged: (valor) =>
-                          setState(() => _cambiarContrasena = valor),
                     ),
-                    if (_cambiarContrasena) ...[
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _contrasenaController,
-                        obscureText: _ocultarContrasena,
-                        decoration: InputDecoration(
-                          labelText: "Nueva contraseña",
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _ocultarContrasena
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                            ),
-                            onPressed: () => setState(
-                              () => _ocultarContrasena = !_ocultarContrasena,
-                            ),
-                          ),
+
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: guardandoPerfil ? null : _guardarPerfil,
+                        icon: guardandoPerfil
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.save_outlined),
+                        label: Text(
+                          guardandoPerfil ? 'Guardando...' : 'Guardar',
                         ),
-                        validator: (valor) {
-                          if (!_cambiarContrasena) return null;
-                          if (valor == null || valor.length < 6) {
-                            return "Mínimo 6 caracteres";
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 14),
-                      TextFormField(
-                        controller: _confirmarContrasenaController,
-                        obscureText: _ocultarContrasena,
-                        decoration: const InputDecoration(
-                          labelText: "Confirmar contraseña",
-                          prefixIcon: Icon(Icons.lock_outline),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.white,
                         ),
-                        validator: (valor) {
-                          if (!_cambiarContrasena) return null;
-                          if (valor != _contrasenaController.text) {
-                            return "Las contraseñas no coinciden";
-                          }
-                          return null;
-                        },
                       ),
-                    ],
+                    ),
                   ],
                 ),
-              ),
-            ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-            const SizedBox(height: 16),
+  Widget _buildSeguridad() {
+    return Form(
+      key: _passwordFormKey,
+      child: Card(
+        elevation: 2,
+        color: AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Seguridad', style: AppTextStyles.sectionTitle),
 
-            Card(
-              elevation: 2,
-              color: AppColors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+              const SizedBox(height: 6),
+
+              Text(
+                'Puedes cambiar la contraseña de tu cuenta.',
+                style: AppTextStyles.subtitle.copyWith(fontSize: 12),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  activeTrackColor: AppColors.success,
-                  title: Text("Cuenta activa", style: AppTextStyles.subtitle),
-                  subtitle: Text(
-                    _activo
-                        ? "Puedes iniciar sesión con normalidad"
-                        : "El acceso quedará deshabilitado",
-                    style: AppTextStyles.subtitle.copyWith(fontSize: 12),
-                  ),
-                  value: _activo,
-                  onChanged: (valor) => setState(() => _activo = valor),
+
+              const SizedBox(height: 10),
+
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                activeTrackColor: AppColors.primary,
+                title: Text(
+                  'Cambiar contraseña',
+                  style: AppTextStyles.subtitle,
                 ),
+                value: _cambiarContrasena,
+                onChanged: guardandoPassword
+                    ? null
+                    : (valor) {
+                        setState(() {
+                          _cambiarContrasena = valor;
+
+                          if (!valor) {
+                            _contrasenaController.clear();
+                            _confirmarContrasenaController.clear();
+                          }
+                        });
+                      },
               ),
-            ),
 
-            const SizedBox(height: 24),
+              if (_cambiarContrasena) ...[
+                const SizedBox(height: 8),
 
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton.icon(
-                onPressed: _guardar,
-                icon: const Icon(Icons.save_outlined),
-                label: const Text("Guardar cambios"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                TextFormField(
+                  controller: _contrasenaController,
+                  obscureText: _ocultarContrasena,
+                  decoration: InputDecoration(
+                    labelText: 'Nueva contraseña',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _ocultarContrasena = !_ocultarContrasena;
+                        });
+                      },
+                      icon: Icon(
+                        _ocultarContrasena
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
+                    ),
+                  ),
+                  validator: (valor) {
+                    if (!_cambiarContrasena) {
+                      return null;
+                    }
+
+                    final password = valor ?? '';
+
+                    if (password.isEmpty) {
+                      return 'Ingresa la nueva contraseña';
+                    }
+
+                    if (password.length < 8) {
+                      return 'La contraseña debe tener al menos 8 caracteres';
+                    }
+
+                    if (!RegExp(r'\d').hasMatch(password)) {
+                      return 'La contraseña debe incluir al menos un número';
+                    }
+
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 14),
+
+                TextFormField(
+                  controller: _confirmarContrasenaController,
+                  obscureText: _ocultarConfirmacion,
+                  decoration: InputDecoration(
+                    labelText: 'Confirmar nueva contraseña',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _ocultarConfirmacion = !_ocultarConfirmacion;
+                        });
+                      },
+                      icon: Icon(
+                        _ocultarConfirmacion
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
+                    ),
+                  ),
+                  validator: (valor) {
+                    if (!_cambiarContrasena) {
+                      return null;
+                    }
+
+                    if (valor == null || valor.isEmpty) {
+                      return 'Confirma la nueva contraseña';
+                    }
+
+                    if (valor != _contrasenaController.text) {
+                      return 'Las contraseñas no coinciden';
+                    }
+
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 20),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: guardandoPassword ? null : _guardarPassword,
+                    icon: guardandoPassword
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.lock_reset_outlined),
+                    label: Text(
+                      guardandoPassword
+                          ? 'Actualizando...'
+                          : 'Cambiar contraseña',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-
-            const SizedBox(height: 15),
-          ],
+              ],
+            ],
+          ),
         ),
       ),
     );

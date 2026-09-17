@@ -1,5 +1,5 @@
 class Empresa {
-  final int idEmpresa;
+  final int? idEmpresa;
   final String nombreEmpresa;
   final String? razonSocial;
   final String? rtn;
@@ -8,8 +8,8 @@ class Empresa {
   final String? correo;
   final String? logo;
 
-  Empresa({
-    required this.idEmpresa,
+  const Empresa({
+    this.idEmpresa,
     required this.nombreEmpresa,
     this.razonSocial,
     this.rtn,
@@ -22,7 +22,7 @@ class Empresa {
   factory Empresa.fromJson(Map<String, dynamic> json) {
     return Empresa(
       idEmpresa: json['id_empresa'],
-      nombreEmpresa: json['nombre_empresa'],
+      nombreEmpresa: json['nombre_empresa'] ?? '',
       razonSocial: json['razon_social'],
       rtn: json['rtn'],
       direccion: json['direccion'],
@@ -30,5 +30,17 @@ class Empresa {
       correo: json['correo'],
       logo: json['logo'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'nombre_empresa': nombreEmpresa,
+      'razon_social': razonSocial,
+      'rtn': rtn,
+      'direccion': direccion,
+      'telefono': telefono,
+      'correo': correo,
+      'logo': logo,
+    };
   }
 }

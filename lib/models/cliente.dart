@@ -1,3 +1,5 @@
+import '../utils/json_utils.dart';
+
 class Cliente {
   final int? idCliente;
   final String nombreCliente;
@@ -5,7 +7,7 @@ class Cliente {
   final String? direccion;
   final String? telefono;
   final String? correo;
-  final DateTime fechaRegistro;
+  final DateTime? fechaRegistro;
   final bool estado;
 
   const Cliente({
@@ -15,33 +17,33 @@ class Cliente {
     this.direccion,
     this.telefono,
     this.correo,
-    required this.fechaRegistro,
-    required this.estado,
+    this.fechaRegistro,
+    this.estado = true,
   });
 
   factory Cliente.fromJson(Map<String, dynamic> json) {
     return Cliente(
       idCliente: json['id_cliente'],
-      nombreCliente: json['nombre_cliente'],
+      nombreCliente: json['nombre_cliente'] ?? '',
       rtn: json['rtn'],
       direccion: json['direccion'],
       telefono: json['telefono'],
       correo: json['correo'],
-      fechaRegistro: DateTime.parse(json['fecha_registro']),
-      estado: json['estado'] == true || json['estado'] == 1,
+      fechaRegistro: json['fecha_registro'] != null
+          ? DateTime.parse(json['fecha_registro'])
+          : null,
+      estado: jsonToBool(json['estado']),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id_cliente': idCliente,
       'nombre_cliente': nombreCliente,
       'rtn': rtn,
       'direccion': direccion,
       'telefono': telefono,
       'correo': correo,
-      'fecha_registro': fechaRegistro.toIso8601String(),
-      'estado': estado ? 1 : 0,
+      'estado': estado,
     };
   }
 }

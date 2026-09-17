@@ -76,10 +76,12 @@ class _InfoCard extends StatelessWidget {
               height: 45,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: stock > 10
-                    ? AppColors.success.withOpacity(0.1)
-                    : AppColors.warning.withOpacity(0.1),
+                color: stock > 10 //Condicional del segundo widget logica 
+                    ? AppColors.success.withOpacity(0.1) //exito mayor a 10
+                    : AppColors.warning.withOpacity(0.1), //advertencia menor a 10
                 borderRadius: BorderRadius.circular(10),
+                //Si se agrega un valor que no contemplamos, se puede agregar un else con un color por defecto. 
+                //Pero por el moomento se guardiaria como stock bajo. 
               ),
               child: Text(
                 stock.toString(),

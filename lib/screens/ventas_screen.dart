@@ -1,8 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
-import '../models/detalle_venta_model.dart';
-import '../models/venta_model.dart';
+import '../models/venta.dart';
+import '../services/venta_service.dart';
+import '../utils/fecha_utils.dart';
 
 class VentasScreen extends StatefulWidget {
   const VentasScreen({super.key});
@@ -12,104 +18,59 @@ class VentasScreen extends StatefulWidget {
 }
 
 class _VentasScreenState extends State<VentasScreen> {
-  late final List<Venta> _ventas = [
-    _ventaEjemplo(
-      idVenta: 1,
-      correlativo: 1,
-      cliente: 'Supermercado La Colonia',
-      fecha: DateTime(2026, 8, 5, 10, 30),
-      producto: 'Aceite vegetal 1 L',
-      total: 575.00,
-      tasa: 15,
-      metodoPago: 'Efectivo',
-    ),
-    _ventaEjemplo(
-      idVenta: 2,
-      correlativo: 2,
-      cliente: 'Distribuidora El Sol S.A.',
-      fecha: DateTime(2026, 8, 6, 14, 15),
-      producto: 'Bebida gaseosa',
-      total: 1150.00,
-      tasa: 15,
-      metodoPago: 'Transferencia',
-    ),
-    _ventaEjemplo(
-      idVenta: 3,
-      correlativo: 3,
-      cliente: 'Mini Market La Esquina',
-      fecha: DateTime(2026, 8, 7, 9, 0),
-      producto: 'Pan francés (docena)',
-      total: 140.00,
-      tasa: 0,
-      metodoPago: 'Efectivo',
-      estadoFactura: false,
-    ),
-  ];
+  final VentaService _ventaService = VentaService();
 
-  static Venta _ventaEjemplo({
-    required int idVenta,
-    required int correlativo,
-    required String cliente,
-    required DateTime fecha,
-    required String producto,
-    required double total,
-    required double tasa,
-    required String metodoPago,
-    bool estadoFactura = true,
-  }) {
-    final base = tasa == 0 ? total : total / (1 + tasa / 100);
-    final impuesto = total - base;
-    final numero = correlativo.toString().padLeft(8, '0');
+  bool cargando = true;
 
-    return Venta(
-      idVenta: idVenta,
-      idCliente: idVenta + 4,
-      idUsuario: 1,
-      usuarioNombreFactura: 'Administrador',
-      idAutorizacion: 1,
-      numeroFactura: '000-001-01-$numero',
-      correlativo: correlativo,
-      caiFactura: '3C18C3-8C69E3-1BE5E0-63BE03-0909BF-A0',
-      rangoInicialFactura: '000-001-01-00000001',
-      rangoFinalFactura: '000-001-01-00005000',
-      fechaLimiteEmisionFactura: DateTime(2027, 7, 12),
-      empresaNombreFactura: 'Inversiones Sammy',
-      empresaRazonSocialFactura: 'Inversiones Sammy',
-      empresaRtnFactura: '01079016892580',
-      empresaDireccionFactura:
-          'Los Fuertes contiguo al Super Olguita, Roatan, Islas de la Bahia',
-      empresaTelefonoFactura: '97547973',
-      empresaCorreoFactura: 'inversionesammy2019@hotmail.com',
-      clienteNombreFactura: cliente,
-      fechaVenta: fecha,
-      subtotal: base,
-      totalExento: tasa == 0 ? base : 0,
-      totalGravado15: tasa == 15 ? base : 0,
-      totalGravado18: tasa == 18 ? base : 0,
-      totalIsv15: tasa == 15 ? impuesto : 0,
-      totalIsv18: tasa == 18 ? impuesto : 0,
-      total: total,
-      totalLetras: '${total.toStringAsFixed(2)} LEMPIRAS',
-      estadoFactura: estadoFactura,
-      metodoPago: metodoPago,
-      detalles: [
-        DetalleVenta(
-          idDetalleVenta: idVenta,
-          idVenta: idVenta,
-          idProducto: idVenta,
-          productoCodigoFactura: 'PRO-${idVenta.toString().padLeft(3, '0')}',
-          productoNombreFactura: producto,
-          productoUnidadMedidaFactura: 'Unidad',
-          productoTasaImpuestoFactura: tasa,
-          cantidad: 1,
-          precioUnitario: base,
-          subtotal: base,
-          baseGravada: tasa > 0 ? base : 0,
-          baseExenta: tasa == 0 ? base : 0,
-          montoImpuesto: impuesto,
-        ),
-      ],
-    );
+  List<Venta> _ventas = [];
+
+  String _busqueda = '';
+
+  final Set<int> _facturasDescargando = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarVentas();
+  }
+
+  Future<void> _cargarVentas() async {
+    setState(() {
+      cargando = true;
+    });
+
+    try {
+      final response = await _ventaService.getVentas();
+
+      if (!mounted) return;
+
+      setState(() {
+        _ventas = response;
+        cargando = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        cargando = false;
+      });
+
+      _mostrarMensaje('Error al cargar las ventas', color: AppColors.error);
+    }
+  }
+
+  List<Venta> get _ventasFiltradas {
+    final texto = _busqueda.toLowerCase().trim();
+
+    if (texto.isEmpty) {
+      return _ventas;
+    }
+
+    return _ventas.where((venta) {
+      return venta.numeroFactura.toLowerCase().contains(texto) ||
+          venta.clienteNombreFactura.toLowerCase().contains(texto) ||
+          venta.caiFactura.toLowerCase().contains(texto);
+    }).toList();
   }
 
   Future<void> _abrirFormulario([Venta? venta]) async {
@@ -119,60 +80,89 @@ class _VentasScreenState extends State<VentasScreen> {
       arguments: venta,
     );
 
-    if (!mounted || resultado is! Venta) return;
+    if (!mounted || resultado != true) return;
 
-    setState(() {
-      final indice = resultado.idVenta == null
-          ? -1
-          : _ventas.indexWhere(
-              (item) => item.idVenta == resultado.idVenta,
-            );
-      if (indice >= 0) {
-        _ventas[indice] = resultado;
-      } else {
-        _ventas.insert(0, resultado);
-      }
-    });
-
-    final fueAnulada = venta != null &&
-        venta.estadoFactura &&
-        !resultado.estadoFactura;
     _mostrarMensaje(
-      fueAnulada
-          ? 'Factura anulada correctamente'
-          : 'Venta registrada correctamente',
-      color: fueAnulada ? AppColors.error : AppColors.success,
+      venta == null
+          ? 'Venta registrada correctamente'
+          : 'Factura actualizada correctamente',
+      color: AppColors.success,
     );
+
+    await _cargarVentas();
   }
 
-  void _descargarFactura(Venta venta) {
-    _mostrarMensaje(
-      'La descarga de la factura ${venta.numeroFactura} se habilitará con el backend.',
-    );
+  Future<void> _descargarFactura(Venta venta) async {
+    if (_facturasDescargando.contains(venta.idVenta)) return;
+
+    setState(() {
+      _facturasDescargando.add(venta.idVenta);
+    });
+
+    try {
+      final directorioBase = await getApplicationDocumentsDirectory();
+
+      final directorioFacturas = Directory('${directorioBase.path}/facturas');
+
+      if (!await directorioFacturas.exists()) {
+        await directorioFacturas.create(recursive: true);
+      }
+
+      final nombreSeguro = venta.numeroFactura.replaceAll(
+        RegExp(r'[^a-zA-Z0-9._-]'),
+        '_',
+      );
+
+      final rutaPdf = '${directorioFacturas.path}/factura-$nombreSeguro.pdf';
+
+      await _ventaService.descargarFactura(venta.idVenta, rutaPdf);
+
+      if (!mounted) return;
+
+      _mostrarMensaje(
+        'Factura descargada correctamente',
+        color: AppColors.success,
+      );
+
+      final resultado = await OpenFilex.open(rutaPdf);
+
+      if (!mounted) return;
+
+      if (resultado.type != ResultType.done) {
+        _mostrarMensaje(
+          'La factura se descargó, pero no se pudo abrir automáticamente',
+          color: AppColors.error,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      _mostrarMensaje('Error al descargar la factura', color: AppColors.error);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _facturasDescargando.remove(venta.idVenta);
+        });
+      }
+    }
   }
 
   void _mostrarMensaje(String mensaje, {Color? color}) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(mensaje),
-          backgroundColor: color,
-        ),
-      );
+      ..showSnackBar(SnackBar(content: Text(mensaje), backgroundColor: color));
   }
 
-  String _fecha(DateTime fecha) {
-    final dia = fecha.day.toString().padLeft(2, '0');
-    final mes = fecha.month.toString().padLeft(2, '0');
-    return '$dia/$mes/${fecha.year}';
+  String _lps(double valor) {
+    return 'L. ${valor.toStringAsFixed(2)}';
   }
-
-  String _lps(double valor) => 'L. ${valor.toStringAsFixed(2)}';
 
   Widget _ventaCard(Venta venta) {
-    final colorEstado =
-        venta.estadoFactura ? AppColors.success : AppColors.error;
+    final colorEstado = venta.estadoFactura
+        ? AppColors.success
+        : AppColors.error;
+
+    final descargando = _facturasDescargando.contains(venta.idVenta);
 
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -192,8 +182,15 @@ class _VentasScreenState extends State<VentasScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
+                        venta.caiFactura,
+                        style: AppTextStyles.cardTitle.copyWith(fontSize: 14),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
                         venta.numeroFactura,
-                        style: AppTextStyles.cardTitle,
+                        style: AppTextStyles.cardTitle.copyWith(
+                          color: AppColors.primary,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -204,8 +201,10 @@ class _VentasScreenState extends State<VentasScreen> {
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: colorEstado.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(20),
@@ -225,7 +224,7 @@ class _VentasScreenState extends State<VentasScreen> {
               children: [
                 const Icon(Icons.calendar_today_outlined, size: 18),
                 const SizedBox(width: 6),
-                Text(_fecha(venta.fechaVenta)),
+                Text(FechaUtils.formatearFechaHora(venta.fechaVenta)),
                 const Spacer(),
                 Text(_lps(venta.total), style: AppTextStyles.price),
               ],
@@ -243,9 +242,17 @@ class _VentasScreenState extends State<VentasScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => _descargarFactura(venta),
-                    icon: const Icon(Icons.download_outlined),
-                    label: const Text('Descargar'),
+                    onPressed: descargando
+                        ? null
+                        : () => _descargarFactura(venta),
+                    icon: descargando
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.download_outlined),
+                    label: Text(descargando ? 'Descargando...' : 'Descargar'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: AppColors.white,
@@ -260,6 +267,62 @@ class _VentasScreenState extends State<VentasScreen> {
     );
   }
 
+  Widget _contenido() {
+    if (cargando) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final ventas = _ventasFiltradas;
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          child: Container(
+            height: 46,
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: TextField(
+              onChanged: (valor) {
+                setState(() {
+                  _busqueda = valor;
+                });
+              },
+              decoration: const InputDecoration(
+                hintText: 'Buscar por factura, cliente o CAI...',
+                prefixIcon: Icon(Icons.search),
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: ventas.isEmpty
+              ? Center(
+                  child: Text(
+                    _busqueda.trim().isEmpty
+                        ? 'No hay ventas registradas.'
+                        : 'No se encontraron ventas.',
+                    style: AppTextStyles.subtitle,
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _cargarVentas,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: ventas.length,
+                    itemBuilder: (context, index) {
+                      return _ventaCard(ventas[index]);
+                    },
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -267,15 +330,18 @@ class _VentasScreenState extends State<VentasScreen> {
         title: const Text('Ventas', style: AppTextStyles.screenTitle),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
+        actions: [
+          IconButton(
+            onPressed: _cargarVentas,
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Actualizar ventas',
+          ),
+        ],
       ),
       backgroundColor: AppColors.background,
-      body: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: _ventas.length,
-        itemBuilder: (context, index) => _ventaCard(_ventas[index]),
-      ),
+      body: _contenido(),
       floatingActionButton: FloatingActionButton(
-        onPressed: _abrirFormulario,
+        onPressed: () => _abrirFormulario(),
         backgroundColor: AppColors.secondary,
         foregroundColor: AppColors.white,
         shape: const CircleBorder(),

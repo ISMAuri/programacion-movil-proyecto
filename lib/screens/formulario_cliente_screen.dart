@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
-import '../models/cliente_model.dart';
+import '../models/cliente.dart';
+import '../services/cliente_service.dart';
+
+import '../services/notification_service.dart';
 
 class FormularioClienteScreen extends StatefulWidget {
   const FormularioClienteScreen({super.key});
@@ -12,6 +15,7 @@ class FormularioClienteScreen extends StatefulWidget {
 }
 
 class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
+  final ClienteService _clienteService = ClienteService();
   final _nombreController = TextEditingController();
   final _rtnController = TextEditingController();
   final _direccionController = TextEditingController();
@@ -43,38 +47,89 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
     }
   }
 
-  void _guardarCliente() {
+  Future<void> _guardarCliente() async {
     final nombre = _nombreController.text.trim();
     final rtn = _rtnController.text.trim();
     final direccion = _direccionController.text.trim();
     final telefono = _telefonoController.text.trim();
     final correo = _correoController.text.trim();
 
-    if (nombre.isEmpty ||
-        rtn.isEmpty ||
-        direccion.isEmpty ||
-        telefono.isEmpty ||
-        correo.isEmpty) {
-      _mostrarError('Completa todos los campos del cliente');
+    if (nombre.isEmpty) {
+      _mostrarError('Ingresa el nombre del cliente');
       return;
     }
 
-    if (!correo.contains('@') || !correo.contains('.')) {
+    if (rtn.isNotEmpty && !RegExp(r'^\d{14}$').hasMatch(rtn)) {
+      _mostrarError('El RTN debe contener exactamente 14 dígitos');
+      return;
+    }
+
+    if (direccion.isNotEmpty && direccion.length <= 10) {
+      _mostrarError('La dirección debe tener más de 10 caracteres');
+      return;
+    }
+
+    if (telefono.isNotEmpty && !RegExp(r'^\d{8}$').hasMatch(telefono)) {
+      _mostrarError('El teléfono debe contener exactamente 8 dígitos');
+      return;
+    }
+
+    if (correo.isNotEmpty &&
+        !RegExp(
+          r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',
+        ).hasMatch(correo)) {
       _mostrarError('Ingresa un correo electrónico válido');
       return;
     }
-    
-    Navigator.pop(context, true);
+
+    final cliente = Cliente(
+      idCliente: _cliente?.idCliente,
+      nombreCliente: nombre,
+      rtn: rtn.isEmpty ? null : rtn,
+      direccion: direccion.isEmpty ? null : direccion,
+      telefono: telefono.isEmpty ? null : telefono,
+      correo: correo.isEmpty ? null : correo,
+      estado: _estado,
+      fechaRegistro: _cliente?.fechaRegistro ?? DateTime.now(),
+    );
+
+    try {
+      if (_esEdicion) {
+        await _clienteService.putCliente(_cliente!.idCliente!, cliente);
+      } else {
+        await _clienteService.postCliente(cliente);
+
+        await NotificationService.mostrarNotificacion(
+          titulo: 'Cliente registrado',
+          mensaje: '${cliente.nombreCliente} fue agregado correctamente.',
+        );
+      }
+
+      if (!mounted) return;
+
+      final mensaje = _esEdicion
+          ? 'Cliente actualizado correctamente'
+          : 'Cliente creado correctamente';
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(mensaje), backgroundColor: AppColors.success),
+        );
+
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+
+      _mostrarError('Error al ${_esEdicion ? "actualizar" : "crear"} cliente');
+    }
   }
 
   void _mostrarError(String mensaje) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(mensaje),
-          backgroundColor: AppColors.error,
-        ),
+        SnackBar(content: Text(mensaje), backgroundColor: AppColors.error),
       );
   }
 
@@ -115,7 +170,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
                     controller: _rtnController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'RTN',
+                      labelText: 'RTN (opcional o 14 dígitos)',
                       prefixIcon: Icon(Icons.badge_outlined),
                     ),
                   ),
@@ -123,7 +178,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
                   TextFormField(
                     controller: _direccionController,
                     decoration: const InputDecoration(
-                      labelText: 'Dirección',
+                      labelText: 'Dirección (opcional o más de 10 caracteres)',
                       prefixIcon: Icon(Icons.location_on_outlined),
                     ),
                   ),
@@ -132,7 +187,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
                     controller: _telefonoController,
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(
-                      labelText: 'Teléfono',
+                      labelText: 'Teléfono (opcional o 8 dígitos)',
                       prefixIcon: Icon(Icons.phone_outlined),
                     ),
                   ),
@@ -141,7 +196,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
                     controller: _correoController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
-                      labelText: 'Correo',
+                      labelText: 'Correo (opcional o formato válido)',
                       prefixIcon: Icon(Icons.email_outlined),
                     ),
                   ),
@@ -167,9 +222,7 @@ class _FormularioClienteScreenState extends State<FormularioClienteScreen> {
             child: ElevatedButton.icon(
               onPressed: _guardarCliente,
               icon: Icon(_esEdicion ? Icons.save_outlined : Icons.add),
-              label: Text(
-                _esEdicion ? 'Guardar cambios' : 'Crear cliente',
-              ),
+              label: Text(_esEdicion ? 'Guardar cambios' : 'Crear cliente'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.white,

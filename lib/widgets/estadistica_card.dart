@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
 
@@ -15,48 +16,70 @@ class EstadisticaCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.routeName,
-    this.value = "150",
+    this.value = "0",
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // Navigator.pushNamed(context, routeName);
-      },
-      child: Card(
-        color: AppColors.white,
-        child: Row(
+    return Card(
+      elevation: 2,
+      shadowColor: Colors.black12,
+      color: AppColors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(color: color.withOpacity(0.15)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(width: 12),
-            Container(
-              width: 45,
-              height: 45,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, size: 30, color: color),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: AppTextStyles.cardTitle),
-                  Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: color,
-                    ),
+            Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                ],
+                  child: Icon(icon, color: color, size: 26),
+                ),
+
+                const Spacer(),
+
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ),
+
+            const Spacer(),
+
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                color: color,
               ),
             ),
-            const SizedBox(width: 10),
+
+            const SizedBox(height: 4),
+
+            Text(
+              title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.cardTitle.copyWith(
+                color: Colors.grey.shade700,
+              ),
+            ),
           ],
         ),
       ),

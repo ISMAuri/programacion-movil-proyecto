@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:dio/dio.dart';
 import '../config/app_colors.dart';
 import '../config/app_text_styles.dart';
-import '../models/autorizacion_factura_model.dart';
+import '../models/autorizacion_factura.dart';
+import '../services/autorizacion_factura_service.dart';
+import '../widgets/estado_badge.dart';
+import '../widgets/aviso_card.dart';
 
 class FormularioDatosFiscalesScreen extends StatefulWidget {
-  const FormularioDatosFiscalesScreen({super.key, this.autorizacion});
-
-  final AutorizacionFactura? autorizacion;
+  const FormularioDatosFiscalesScreen({super.key});
 
   @override
   State<FormularioDatosFiscalesScreen> createState() =>
@@ -18,122 +20,228 @@ class _FormularioDatosFiscalesScreenState
     extends State<FormularioDatosFiscalesScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  late final AutorizacionFactura _datosIniciales;
-  late final TextEditingController _caiController;
-  late final TextEditingController _establecimientoController;
-  late final TextEditingController _puntoEmisionController;
-  late final TextEditingController _tipoDocumentoController;
-  late final TextEditingController _rangoInicialController;
-  late final TextEditingController _rangoFinalController;
-  late final TextEditingController _siguienteCorrelativoController;
+  // Solo hay una empresa en el sistema.
+  final int _idEmpresa = 1;
 
-  late DateTime _fechaAutorizacion;
-  late DateTime _fechaLimiteEmision;
-  late bool _estado;
+  final AutorizacionFacturaService _autorizacionFacturaService =
+      AutorizacionFacturaService();
 
-  @override
-  void initState() {
-    super.initState();
+  bool cargando = true;
+  bool guardando = false;
+  int? _siguienteCorrelativoEsperado;
 
-    _datosIniciales =
-        widget.autorizacion ??
-        AutorizacionFactura(
-          idAutorizacion: 1,
-          idEmpresa: 1,
-          cai: '3C18C3-8C69E3-1BE5E0-63BE03-0909BF-A0',
-          establecimiento: '000',
-          puntoEmision: '001',
-          tipoDocumento: '01',
-          rangoInicial: 1,
-          rangoFinal: 5000,
-          siguienteCorrelativo: 1,
-          fechaAutorizacion: DateTime(2026, 7, 12),
-          fechaLimiteEmision: DateTime(2027, 7, 12),
-          estado: true,
-        );
+  late final TextEditingController _caiController = TextEditingController();
 
-    _caiController = TextEditingController(text: _datosIniciales.cai);
-    _establecimientoController = TextEditingController(
-      text: _datosIniciales.establecimiento,
-    );
-    _puntoEmisionController = TextEditingController(
-      text: _datosIniciales.puntoEmision,
-    );
-    _tipoDocumentoController = TextEditingController(
-      text: _datosIniciales.tipoDocumento,
-    );
-    _rangoInicialController = TextEditingController(
-      text: _datosIniciales.rangoInicial.toString(),
-    );
-    _rangoFinalController = TextEditingController(
-      text: _datosIniciales.rangoFinal.toString(),
-    );
-    _siguienteCorrelativoController = TextEditingController(
-      text: _datosIniciales.siguienteCorrelativo.toString(),
-    );
-    _fechaAutorizacion = _datosIniciales.fechaAutorizacion;
-    _fechaLimiteEmision = _datosIniciales.fechaLimiteEmision;
-    _estado = _datosIniciales.estado;
+  late final TextEditingController _establecimientoController =
+      TextEditingController();
+
+  late final TextEditingController _puntoEmisionController =
+      TextEditingController();
+
+  late final TextEditingController _tipoDocumentoController =
+      TextEditingController();
+
+  late final TextEditingController _rangoInicialController =
+      TextEditingController();
+
+  late final TextEditingController _rangoFinalController =
+      TextEditingController();
+
+  late final TextEditingController _siguienteCorrelativoController =
+      TextEditingController();
+
+  DateTime _fechaAutorizacion = DateTime.now();
+  late DateTime _fechaLimiteEmision = _sumarUnAnio(DateTime.now());
+
+  DateTime _sumarUnAnio(DateTime fecha) {
+    final siguienteAnio = fecha.year + 1;
+
+    // Evita problemas con 29 de febrero.
+    if (fecha.month == 2 && fecha.day == 29) {
+      return DateTime(siguienteAnio, 2, 28);
+    }
+
+    return DateTime(siguienteAnio, fecha.month, fecha.day);
   }
 
-  @override
-  void dispose() {
-    _caiController.dispose();
-    _establecimientoController.dispose();
-    _puntoEmisionController.dispose();
-    _tipoDocumentoController.dispose();
-    _rangoInicialController.dispose();
-    _rangoFinalController.dispose();
-    _siguienteCorrelativoController.dispose();
-    super.dispose();
+  Future<void> _cargarAutorizacion() async {
+    try {
+      final autorizacion = await _autorizacionFacturaService
+          .getAutorizacionActivaEmpresa(_idEmpresa);
+
+      if (!mounted) return;
+
+      final siguiente = autorizacion.siguienteCorrelativo;
+
+      setState(() {
+        // Nueva autorización, estos datos deben ingresarse nuevamente
+        _caiController.clear();
+        _rangoInicialController.text = siguiente.toString();
+        _rangoFinalController.clear();
+        _siguienteCorrelativoController.text = siguiente.toString();
+
+        // La serie se mantiene.
+        _establecimientoController.text = autorizacion.establecimiento;
+        _puntoEmisionController.text = autorizacion.puntoEmision;
+        _tipoDocumentoController.text = autorizacion.tipoDocumento;
+
+        _siguienteCorrelativoEsperado = siguiente;
+
+        _fechaAutorizacion = DateTime.now();
+        _fechaLimiteEmision = _sumarUnAnio(DateTime.now());
+
+        cargando = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        cargando = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al cargar los datos de autorización fiscal'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
-  void _guardar() {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _guardar() async {
+    if (guardando) return;
+
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
     final rangoInicial = int.parse(_rangoInicialController.text.trim());
+
     final rangoFinal = int.parse(_rangoFinalController.text.trim());
+
+    if (_siguienteCorrelativoEsperado != null &&
+        rangoInicial != _siguienteCorrelativoEsperado) {
+      _mostrarError(
+        'El rango inicial debe comenzar en '
+        '$_siguienteCorrelativoEsperado',
+      );
+      return;
+    }
 
     if (rangoFinal < rangoInicial) {
       _mostrarError('El rango final no puede ser menor que el rango inicial');
       return;
     }
 
-    if (_fechaLimiteEmision.isBefore(_fechaAutorizacion)) {
+    final ahora = DateTime.now();
+
+    final hoy = DateTime(ahora.year, ahora.month, ahora.day);
+
+    final fechaAutorizacion = DateTime(
+      _fechaAutorizacion.year,
+      _fechaAutorizacion.month,
+      _fechaAutorizacion.day,
+    );
+
+    final fechaLimite = DateTime(
+      _fechaLimiteEmision.year,
+      _fechaLimiteEmision.month,
+      _fechaLimiteEmision.day,
+    );
+
+    if (fechaAutorizacion.isAfter(hoy)) {
+      _mostrarError('La fecha de autorización no puede ser futura');
+      return;
+    }
+
+    if (fechaLimite.isBefore(fechaAutorizacion)) {
       _mostrarError(
-        'La fecha límite de emisión no puede ser anterior a la fecha de autorización',
+        'La fecha límite de emisión no puede ser anterior '
+        'a la fecha de autorización',
       );
       return;
     }
 
-    final autorizacionActualizada = AutorizacionFactura(
-      idAutorizacion: _datosIniciales.idAutorizacion,
-      idEmpresa: _datosIniciales.idEmpresa,
+    if (fechaLimite.isBefore(hoy)) {
+      _mostrarError('La fecha límite de emisión no puede estar vencida');
+      return;
+    }
+
+    final autorizacion = AutorizacionFactura(
+      idEmpresa: _idEmpresa,
       cai: _caiController.text.trim(),
-      establecimiento: _establecimientoController.text,
+      establecimiento: _establecimientoController.text.trim(),
       puntoEmision: _puntoEmisionController.text.trim(),
       tipoDocumento: _tipoDocumentoController.text.trim(),
       rangoInicial: rangoInicial,
       rangoFinal: rangoFinal,
-      siguienteCorrelativo: _datosIniciales.siguienteCorrelativo,
+      siguienteCorrelativo: rangoInicial,
       fechaAutorizacion: _fechaAutorizacion,
       fechaLimiteEmision: _fechaLimiteEmision,
-      estado: _estado,
+      estado: true,
     );
 
-    Navigator.pop(context, autorizacionActualizada);
+    setState(() {
+      guardando = true;
+    });
+
+    try {
+      await _autorizacionFacturaService.postAutorizacion(autorizacion);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Datos de autorización fiscal guardados correctamente'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+
+      if (e is DioException) {
+        final data = e.response?.data;
+
+        String mensaje = 'Error al guardar la autorización fiscal';
+
+        if (data is Map && data['message'] != null) {
+          mensaje = data['message'].toString();
+        }
+
+        _mostrarError(mensaje);
+      } else {
+        _mostrarError('Error al guardar los datos de autorización fiscal');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          guardando = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarAutorizacion();
   }
 
   void _mostrarError(String mensaje) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(mensaje), backgroundColor: AppColors.error),
-    );
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(mensaje), backgroundColor: AppColors.error),
+      );
   }
 
   Future<void> _seleccionarFecha({required bool esAutorizacion}) async {
     final fechaActual = esAutorizacion
         ? _fechaAutorizacion
         : _fechaLimiteEmision;
+
     final fecha = await showDatePicker(
       context: context,
       initialDate: fechaActual,
@@ -145,6 +253,7 @@ class _FormularioDatosFiscalesScreenState
       setState(() {
         if (esAutorizacion) {
           _fechaAutorizacion = fecha;
+          _fechaLimiteEmision = _sumarUnAnio(fecha);
         } else {
           _fechaLimiteEmision = fecha;
         }
@@ -154,18 +263,41 @@ class _FormularioDatosFiscalesScreenState
 
   String _formatearFecha(DateTime fecha) {
     final dia = fecha.day.toString().padLeft(2, '0');
+
     final mes = fecha.month.toString().padLeft(2, '0');
+
     return '$dia/$mes/${fecha.year}';
   }
 
-  String? _validarRequerido(String? valor, String mensaje) {
-    return valor == null || valor.trim().isEmpty ? mensaje : null;
+  String? _validarCai(String? valor) {
+    final texto = valor?.trim() ?? '';
+
+    if (texto.isEmpty) {
+      return 'Ingresa el CAI';
+    }
+
+    final caiValido = RegExp(
+      r'^[A-Za-z0-9]{6}-[A-Za-z0-9]{6}-[A-Za-z0-9]{6}-[A-Za-z0-9]{6}-[A-Za-z0-9]{6}-[A-Za-z0-9]{2}$',
+    ).hasMatch(texto);
+
+    if (!caiValido) {
+      return 'El CAI debe tener el formato 6-6-6-6-6-2';
+    }
+
+    return null;
   }
 
   String? _validarNumero(String? valor, String nombre) {
-    if (valor == null || valor.trim().isEmpty) return 'Ingresa $nombre';
+    if (valor == null || valor.trim().isEmpty) {
+      return 'Ingresa $nombre';
+    }
+
     final numero = int.tryParse(valor);
-    if (numero == null || numero < 1) return 'Ingresa un número válido';
+
+    if (numero == null || numero < 1) {
+      return 'Ingresa un número válido';
+    }
+
     return null;
   }
 
@@ -247,127 +379,184 @@ class _FormularioDatosFiscalesScreenState
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            _tarjeta(
-              titulo: 'Autorización fiscal',
-              children: [
-                _campoTexto(
-                  controller: _caiController,
-                  etiqueta: 'CAI',
-                  icono: Icons.receipt_long_outlined,
-                  longitudMaxima: 50,
-                  textoInformativo:
-                      '37 caracteres (6-6-6-6-6-2 separados por guiones)',
-                  validator: (valor) =>
-                      _validarRequerido(valor, 'Ingresa el CAI'),
-                ),
-                separador,
-                _campoTexto(
-                  controller: _establecimientoController,
-                  etiqueta: 'Número de establecimiento',
-                  icono: Icons.store_outlined,
-                  habilitado: false,
-                ),
-                separador,
-                _campoTexto(
-                  controller: _puntoEmisionController,
-                  etiqueta: 'Punto de emisión',
-                  icono: Icons.point_of_sale_outlined,
-                  habilitado: false,
-                ),
-                separador,
-                _campoTexto(
-                  controller: _tipoDocumentoController,
-                  etiqueta: 'Tipo de documento',
-                  icono: Icons.description_outlined,
-                  habilitado: false,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _tarjeta(
-              titulo: 'Rango autorizado',
-              children: [
-                _campoTexto(
-                  controller: _rangoInicialController,
-                  etiqueta: 'Rango inicial',
-                  icono: Icons.format_list_numbered,
-                  teclado: TextInputType.number,
-                  filtros: [FilteringTextInputFormatter.digitsOnly],
-                  validator: (valor) =>
-                      _validarNumero(valor, 'el rango inicial'),
-                ),
-                separador,
-                _campoTexto(
-                  controller: _rangoFinalController,
-                  etiqueta: 'Rango final',
-                  icono: Icons.format_list_numbered,
-                  teclado: TextInputType.number,
-                  filtros: [FilteringTextInputFormatter.digitsOnly],
-                  validator: (valor) => _validarNumero(valor, 'el rango final'),
-                ),
-                separador,
-                _campoTexto(
-                  controller: _siguienteCorrelativoController,
-                  etiqueta: 'Siguiente número correlativo',
-                  icono: Icons.numbers,
-                  habilitado: false,
-                  textoInformativo:
-                      'Se establece solo al crear una nueva configuración.',
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _tarjeta(
-              titulo: 'Vigencia',
-              children: [
-                _campoFecha(
-                  etiqueta: 'Fecha de autorización',
-                  icono: Icons.calendar_today_outlined,
-                  fecha: _fechaAutorizacion,
-                  onTap: () => _seleccionarFecha(esAutorizacion: true),
-                ),
-                separador,
-                _campoFecha(
-                  etiqueta: 'Fecha límite de emisión',
-                  icono: Icons.event_available_outlined,
-                  fecha: _fechaLimiteEmision,
-                  onTap: () => _seleccionarFecha(esAutorizacion: false),
-                ),
-                separador,
-                SwitchListTile.adaptive(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Autorización activa'),
-                  subtitle: Text(_estado ? 'Activa' : 'Inactiva'),
-                  value: _estado,
-                  activeColor: AppColors.primary,
-                  onChanged: (valor) => setState(() => _estado = valor),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton.icon(
-                onPressed: _guardar,
-                icon: const Icon(Icons.save_outlined),
-                label: const Text('Guardar cambios'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+        child: cargando
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  AvisoCard(
+                    text:
+                        'Importante: Estos datos no deben modificarse '
+                        'salvo que se haya emitido una nueva autorización. '
+                        'Al guardar cambios se creará un nuevo registro '
+                        'y la anterior se conservará en el historial.',
                   ),
-                ),
+
+                  const SizedBox(height: 16),
+
+                  _tarjeta(
+                    titulo: 'Autorización fiscal',
+                    children: [
+                      _campoTexto(
+                        controller: _caiController,
+                        etiqueta: 'CAI',
+                        icono: Icons.receipt_long_outlined,
+                        longitudMaxima: 37,
+                        textoInformativo:
+                            '37 caracteres '
+                            '(6-6-6-6-6-2 separados por guiones)',
+                        validator: _validarCai,
+                      ),
+
+                      separador,
+
+                      _campoTexto(
+                        controller: _establecimientoController,
+                        etiqueta: 'Número de establecimiento',
+                        icono: Icons.store_outlined,
+                        habilitado: false,
+                      ),
+
+                      separador,
+
+                      _campoTexto(
+                        controller: _puntoEmisionController,
+                        etiqueta: 'Punto de emisión',
+                        icono: Icons.point_of_sale_outlined,
+                        habilitado: false,
+                      ),
+
+                      separador,
+
+                      _campoTexto(
+                        controller: _tipoDocumentoController,
+                        etiqueta: 'Tipo de documento',
+                        icono: Icons.description_outlined,
+                        habilitado: false,
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  _tarjeta(
+                    titulo: 'Rango autorizado',
+                    children: [
+                      _campoTexto(
+                        controller: _rangoInicialController,
+                        etiqueta: 'Rango inicial',
+                        icono: Icons.format_list_numbered,
+                        teclado: TextInputType.number,
+                        filtros: [FilteringTextInputFormatter.digitsOnly],
+                        validator: (valor) =>
+                            _validarNumero(valor, 'el rango inicial'),
+                      ),
+
+                      separador,
+
+                      _campoTexto(
+                        controller: _rangoFinalController,
+                        etiqueta: 'Rango final',
+                        icono: Icons.format_list_numbered,
+                        teclado: TextInputType.number,
+                        filtros: [FilteringTextInputFormatter.digitsOnly],
+                        validator: (valor) =>
+                            _validarNumero(valor, 'el rango final'),
+                      ),
+
+                      separador,
+
+                      _campoTexto(
+                        controller: _siguienteCorrelativoController,
+                        etiqueta: 'Siguiente número correlativo',
+                        icono: Icons.numbers,
+                        habilitado: false,
+                        textoInformativo: 'Este valor lo controla el sistema.',
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  _tarjeta(
+                    titulo: 'Vigencia',
+                    children: [
+                      _campoFecha(
+                        etiqueta: 'Fecha de autorización',
+                        icono: Icons.calendar_today_outlined,
+                        fecha: _fechaAutorizacion,
+                        onTap: () => _seleccionarFecha(esAutorizacion: true),
+                      ),
+
+                      separador,
+
+                      _campoFecha(
+                        etiqueta: 'Fecha límite de emisión',
+                        icono: Icons.event_available_outlined,
+                        fecha: _fechaLimiteEmision,
+                        onTap: () => _seleccionarFecha(esAutorizacion: false),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  EstadoBadge(
+                    estado: !_fechaLimiteEmision.isBefore(
+                      DateTime(
+                        DateTime.now().year,
+                        DateTime.now().month,
+                        DateTime.now().day,
+                      ),
+                    ),
+                    textoActivo: 'Vigente',
+                    textoInactivo: 'Vencido',
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: guardando ? null : _guardar,
+                      icon: guardando
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.save_outlined),
+                      label: Text(
+                        guardando ? 'Guardando...' : 'Guardar cambios',
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 15),
+                ],
               ),
-            ),
-            const SizedBox(height: 15),
-          ],
-        ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _caiController.dispose();
+    _establecimientoController.dispose();
+    _puntoEmisionController.dispose();
+    _tipoDocumentoController.dispose();
+    _rangoInicialController.dispose();
+    _rangoFinalController.dispose();
+    _siguienteCorrelativoController.dispose();
+
+    super.dispose();
   }
 }

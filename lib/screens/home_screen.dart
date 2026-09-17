@@ -4,6 +4,8 @@ import '../config/app_text_styles.dart';
 import 'dashboard_screen.dart';
 import 'listado_productos_screen.dart';
 import 'configuracion_screen.dart';
+import '../services/storage_service.dart';
+import '../services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,6 +16,29 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  final AuthService _authService = AuthService();
+
+  bool esAdmin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarUsuario();
+  }
+
+  Future<void> _cargarUsuario() async {
+    try {
+      final usuario = await _authService.getCurrentUser();
+
+      if (!mounted) return;
+
+      setState(() {
+        esAdmin = usuario.role.trim().toLowerCase() == 'admin';
+      });
+    } catch (e) {
+      debugPrint('Error al cargar rol del usuario: $e');
+    }
+  }
 
   final List<Widget> _secciones = const [
     DashboardScreen(),
@@ -45,8 +70,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
       backgroundColor: AppColors.background,
 
-      body: IndexedStack(index: _selectedIndex, children: _secciones),
-
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _secciones,
+      ), // Mantiene el estado de cada sección mientras se navega entre ellas.
+      //Con un if:
+      //Se pierde el estado de las pantallas, porque con if se vuelven a crear al regresar a ellas. Con IndexedStack se mantienen.
+      //el estado son los valores de los campos, scroll, textos, que el usuario ha escrito.
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _cambiarSeccion,
@@ -65,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButton: _selectedIndex == 1
+      floatingActionButton: _selectedIndex == 1 && esAdmin
           ? FloatingActionButton(
               onPressed: () =>
                   Navigator.pushNamed(context, "/formulario_producto"),
@@ -92,6 +122,7 @@ class Menu extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
+            //DrawerHeader es un widget que se usa para mostrar un encabezado en el Drawer, normalmente con información del usuario o de la app.
             padding: EdgeInsets.zero,
             child: Container(
               padding: const EdgeInsets.all(20),
@@ -199,7 +230,11 @@ class Menu extends StatelessWidget {
               'Cerrar sesión',
               style: TextStyle(color: AppColors.error),
             ),
-            onTap: () {
+            onTap: () async {
+              await StorageService().deleteToken();
+
+              if (!context.mounted) return;
+
               Navigator.pushNamedAndRemoveUntil(
                 context,
                 "/login",
