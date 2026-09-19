@@ -1,0 +1,1380 @@
+{
+  "info": {
+    "_postman_id": "8c171d41-f69e-43f2-bce2-87d9165bf005",
+    "name": "Inventario Fácil API",
+    "description": "Colección completa de la API REST de Inventario Fácil.\n\nURL de producción: https://api2.ismaelcastillo.me/api\nURL local: http://localhost:4000/api\n\nPor defecto {{base_url}} apunta a producción. Para trabajar localmente cambie la variable base_url.\n\nAutenticación:\n- La colección usa Bearer {{access_token}} en las rutas protegidas.\n- Login, register y refresh actualizan access_token automáticamente.\n- El refresh token es una cookie HttpOnly; Postman la gestiona mediante su Cookie Jar.\n- Las peticiones públicas se encuentran configuradas con No Auth.\n\nPrecaución: POST, PUT, PATCH y DELETE pueden modificar datos reales si base_url apunta a producción. Revise IDs y cuerpos antes de enviarlos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api2.ismaelcastillo.me/api",
+      "type": "string"
+    },
+    {
+      "key": "local_base_url",
+      "value": "http://localhost:4000/api",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "login_email",
+      "value": "usuario@ejemplo.com",
+      "type": "string"
+    },
+    {
+      "key": "login_password",
+      "value": "Password123",
+      "type": "string"
+    },
+    {
+      "key": "recovery_email",
+      "value": "usuario@ejemplo.com",
+      "type": "string"
+    },
+    {
+      "key": "recovery_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "otp_code",
+      "value": "000000",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "category_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "product_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "client_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "company_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "authorization_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "sale_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "detail_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "movement_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "invoice_number",
+      "value": "001-001-01-00000001",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Autenticación y perfil",
+      "description": "Endpoints de autenticación, sesión, perfil y recuperación de contraseña. Login, register y refresh guardan automáticamente access_token y user_id cuando la respuesta los contiene. El refresh token se maneja como cookie HttpOnly; Postman conserva la cookie automáticamente si el Cookie Jar está habilitado.",
+      "item": [
+        {
+          "name": "Registrar usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/auth/register",
+            "description": "Registra un nuevo usuario. La ruta actual acepta los roles client, provider y user; el ejemplo usa user.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Usuario Postman\",\n  \"email\": \"nuevo.usuario@ejemplo.com\",\n  \"password\": \"Password123\",\n  \"role\": \"user\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    if (data.accessToken) pm.collectionVariables.set('access_token', data.accessToken);",
+                  "    if (data.user && data.user.id) pm.collectionVariables.set('user_id', String(data.user.id));",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Iniciar sesión",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "description": "Inicia sesión. Si la respuesta es exitosa, la colección guarda accessToken en {{access_token}} y el id del usuario en {{user_id}}. El refresh token queda en la cookie de Postman.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{login_email}}\",\n  \"password\": \"{{login_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    if (data.accessToken) pm.collectionVariables.set('access_token', data.accessToken);",
+                  "    if (data.user && data.user.id) pm.collectionVariables.set('user_id', String(data.user.id));",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Renovar sesión",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{base_url}}/auth/refresh",
+            "description": "Renueva el access token utilizando la cookie refreshToken creada por login/register. Mantenga habilitado el Cookie Jar de Postman.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    if (data.accessToken) pm.collectionVariables.set('access_token', data.accessToken);",
+                  "    if (data.user && data.user.id) pm.collectionVariables.set('user_id', String(data.user.id));",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cerrar sesión",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{base_url}}/auth/logout",
+            "description": "Revoca el refresh token de la sesión actual y elimina su cookie.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener mi perfil",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/auth/me",
+            "description": "Obtiene el perfil asociado al JWT actual."
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar mi perfil",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/auth/me",
+            "description": "Actualiza nombre y correo del usuario autenticado. Esta petición modifica datos reales.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Usuario Actualizado\",\n  \"email\": \"{{login_email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cambiar mi contraseña",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/auth/me/password",
+            "description": "Cambia la contraseña del usuario autenticado. La nueva contraseña debe tener al menos 8 caracteres y contener un número.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"passwordNueva\": \"NuevaClave123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener usuario por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/auth/{{user_id}}",
+            "description": "Consulta un usuario por su identificador."
+          },
+          "response": []
+        },
+        {
+          "name": "Solicitar OTP de recuperación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/auth/password/otp",
+            "description": "Solicita un código OTP para recuperación de contraseña. Si la respuesta contiene recoveryId, se guarda automáticamente en {{recovery_id}}.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{recovery_email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const recoveryId = data.recoveryId || (data.data && data.data.recoveryId);",
+                  "    if (recoveryId) pm.collectionVariables.set('recovery_id', recoveryId);",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verificar OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/auth/password/otp/verify",
+            "description": "Verifica el OTP de seis dígitos enviado por correo. Coloque el código recibido en {{otp_code}}.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recoveryId\": \"{{recovery_id}}\",\n  \"otp\": \"{{otp_code}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Restablecer contraseña",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/auth/password/reset",
+            "description": "Restablece la contraseña después de verificar correctamente el OTP.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recoveryId\": \"{{recovery_id}}\",\n  \"passwordNueva\": \"PasswordNueva123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Categorías",
+      "description": "Consulta pública de categorías. Crear, editar y desactivar requieren autenticación con rol admin.",
+      "item": [
+        {
+          "name": "Listar categorías",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/categorias",
+            "description": "Lista las categorías. Esta ruta es pública.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const list = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);",
+                  "    if (list.length > 0) {",
+                  "      const first = list[0];",
+                  "      const value = first['id_categoria'] || first['id'];",
+                  "      if (value !== undefined && value !== null) pm.collectionVariables.set('category_id', String(value));",
+                  "    }",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener categoría por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/categorias/{{category_id}}",
+            "description": "Obtiene una categoría por ID. Esta ruta es pública.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear categoría",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/categorias",
+            "description": "Crea una categoría. Requiere administrador.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Categoría Postman\",\n  \"descripcion\": \"Categoría creada desde la colección de Postman\",\n  \"icono\": \"category\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const obj = data && data.data ? data.data : data;",
+                  "    const value = obj['id_categoria'] || obj['id'];",
+                  "    if (value !== undefined && value !== null) pm.collectionVariables.set('category_id', String(value));",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar categoría",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/categorias/{{category_id}}",
+            "description": "Actualiza una categoría existente. Requiere administrador.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Categoría Postman Actualizada\",\n  \"descripcion\": \"Categoría actualizada desde Postman\",\n  \"icono\": \"category\",\n  \"activo\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar / desactivar categoría",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/categorias/{{category_id}}",
+            "description": "Ejecuta la operación de eliminación/desactivación definida por el backend. Requiere administrador."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 - Productos",
+      "description": "Consulta de productos para usuarios autenticados. Crear, editar y eliminar/desactivar requieren rol admin.",
+      "item": [
+        {
+          "name": "Listar productos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/productos",
+            "description": "Lista productos disponibles para el usuario autenticado."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const list = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);",
+                  "    if (list.length > 0) {",
+                  "      const first = list[0];",
+                  "      const value = first['id_producto'] || first['id'];",
+                  "      if (value !== undefined && value !== null) pm.collectionVariables.set('product_id', String(value));",
+                  "    }",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener producto por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/productos/{{product_id}}",
+            "description": "Consulta un producto por ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear producto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/productos",
+            "description": "Crea un producto. Requiere administrador.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_categoria\": {{category_id}},\n  \"nombre_producto\": \"Producto Postman\",\n  \"descripcion\": \"Producto creado desde Postman\",\n  \"codigo_producto\": \"PM-001\",\n  \"precio_compra\": 50.00,\n  \"precio_venta\": 75.00,\n  \"stock_actual\": 20,\n  \"unidad_medida\": \"Unidad\",\n  \"tasa_impuesto\": 15\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const obj = data && data.data ? data.data : data;",
+                  "    const value = obj['id_producto'] || obj['id'];",
+                  "    if (value !== undefined && value !== null) pm.collectionVariables.set('product_id', String(value));",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar producto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/productos/{{product_id}}",
+            "description": "Actualiza un producto. Requiere administrador. precio_compra puede ser opcional.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_categoria\": {{category_id}},\n  \"nombre_producto\": \"Producto Postman Actualizado\",\n  \"descripcion\": \"Producto actualizado desde Postman\",\n  \"codigo_producto\": \"PM-001\",\n  \"precio_compra\": 50.00,\n  \"precio_venta\": 80.00,\n  \"stock_actual\": 20,\n  \"unidad_medida\": \"Unidad\",\n  \"tasa_impuesto\": 15,\n  \"estado\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar / desactivar producto",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/productos/{{product_id}}",
+            "description": "Ejecuta la operación de eliminación/desactivación del producto. Requiere administrador."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - Clientes",
+      "description": "Gestión de clientes. Todas las rutas requieren autenticación.",
+      "item": [
+        {
+          "name": "Listar clientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/clientes",
+            "description": "Lista los clientes."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const list = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);",
+                  "    if (list.length > 0) {",
+                  "      const first = list[0];",
+                  "      const value = first['id_cliente'] || first['id'];",
+                  "      if (value !== undefined && value !== null) pm.collectionVariables.set('client_id', String(value));",
+                  "    }",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener cliente por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/clientes/{{client_id}}",
+            "description": "Consulta un cliente por ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/clientes",
+            "description": "Crea un cliente.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre_cliente\": \"Cliente Postman\",\n  \"rtn\": \"08011999123456\",\n  \"direccion\": \"Tegucigalpa, Honduras\",\n  \"telefono\": \"9999-9999\",\n  \"correo\": \"cliente.postman@ejemplo.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const obj = data && data.data ? data.data : data;",
+                  "    const value = obj['id_cliente'] || obj['id'];",
+                  "    if (value !== undefined && value !== null) pm.collectionVariables.set('client_id', String(value));",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar cliente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/clientes/{{client_id}}",
+            "description": "Actualiza un cliente existente.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre_cliente\": \"Cliente Postman Actualizado\",\n  \"rtn\": \"08011999123456\",\n  \"direccion\": \"Tegucigalpa, Honduras\",\n  \"telefono\": \"8888-8888\",\n  \"correo\": \"cliente.postman@ejemplo.com\",\n  \"estado\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar / desactivar cliente",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/clientes/{{client_id}}",
+            "description": "Ejecuta la operación de eliminación/desactivación definida por el backend."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05 - Empresa",
+      "description": "Consulta de empresa para usuarios autenticados. Crear y actualizar requieren rol admin.",
+      "item": [
+        {
+          "name": "Listar empresas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/empresas",
+            "description": "Lista empresas."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const list = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);",
+                  "    if (list.length > 0) {",
+                  "      const first = list[0];",
+                  "      const value = first['id_empresa'] || first['id'];",
+                  "      if (value !== undefined && value !== null) pm.collectionVariables.set('company_id', String(value));",
+                  "    }",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener empresa por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/empresas/{{company_id}}",
+            "description": "Consulta la empresa por ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear empresa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/empresas",
+            "description": "Crea una empresa. Requiere administrador.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre_empresa\": \"Inventario Fácil\",\n  \"razon_social\": \"Inventario Fácil\",\n  \"rtn\": \"08011999123456\",\n  \"direccion\": \"Tegucigalpa, Honduras\",\n  \"telefono\": \"9999-9999\",\n  \"correo\": \"empresa@ejemplo.com\",\n  \"logo\": \"https://api2.ismaelcastillo.me/app-icon.png\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const obj = data && data.data ? data.data : data;",
+                  "    const value = obj['id_empresa'] || obj['id'];",
+                  "    if (value !== undefined && value !== null) pm.collectionVariables.set('company_id', String(value));",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar empresa",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/empresas/{{company_id}}",
+            "description": "Actualiza los datos de una empresa. Requiere administrador.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre_empresa\": \"Inventario Fácil\",\n  \"razon_social\": \"Inventario Fácil\",\n  \"rtn\": \"08011999123456\",\n  \"direccion\": \"Tegucigalpa, Honduras\",\n  \"telefono\": \"9999-9999\",\n  \"correo\": \"empresa@ejemplo.com\",\n  \"logo\": \"https://api2.ismaelcastillo.me/app-icon.png\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06 - Autorizaciones fiscales",
+      "description": "Gestión de CAI, rangos y correlativos. Las consultas requieren autenticación; crear, actualizar y eliminar/desactivar requieren rol admin. Crear una nueva autorización puede desactivar la autorización activa anterior de la empresa.",
+      "item": [
+        {
+          "name": "Listar autorizaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/autorizacion-facturas",
+            "description": "Lista autorizaciones fiscales. El servicio admite filtros por estado e id_empresa cuando se envían como query parameters."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const list = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);",
+                  "    if (list.length > 0) {",
+                  "      const first = list[0];",
+                  "      const value = first['id_autorizacion'] || first['id'];",
+                  "      if (value !== undefined && value !== null) pm.collectionVariables.set('authorization_id', String(value));",
+                  "    }",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener autorización activa por empresa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/autorizacion-facturas/empresa/{{company_id}}/activa",
+            "description": "Obtiene la autorización fiscal activa de una empresa."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const obj = data && data.data ? data.data : data;",
+                  "    const value = obj['id_autorizacion'] || obj['id'];",
+                  "    if (value !== undefined && value !== null) pm.collectionVariables.set('authorization_id', String(value));",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener autorización por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/autorizacion-facturas/{{authorization_id}}",
+            "description": "Consulta una autorización fiscal por ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear autorización fiscal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/autorizacion-facturas",
+            "description": "Crea una nueva autorización fiscal y la deja activa. Requiere administrador. Utilice un CAI no registrado previamente.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_empresa\": {{company_id}},\n  \"cai\": \"ABC123-DEF456-GHI789-JKL012-MNO345-PQ\",\n  \"establecimiento\": \"001\",\n  \"punto_emision\": \"001\",\n  \"tipo_documento\": \"01\",\n  \"rango_inicial\": 1001,\n  \"rango_final\": 2000,\n  \"siguiente_correlativo\": 1001,\n  \"fecha_autorizacion\": \"2026-09-01\",\n  \"fecha_limite_emision\": \"2027-09-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const obj = data && data.data ? data.data : data;",
+                  "    const value = obj['id_autorizacion'] || obj['id'];",
+                  "    if (value !== undefined && value !== null) pm.collectionVariables.set('authorization_id', String(value));",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar autorización fiscal",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/autorizacion-facturas/{{authorization_id}}",
+            "description": "Actualiza los campos permitidos de una autorización fiscal. El estado enviado por cliente no se utiliza para modificarla directamente.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_empresa\": {{company_id}},\n  \"cai\": \"ABC123-DEF456-GHI789-JKL012-MNO345-PQ\",\n  \"establecimiento\": \"001\",\n  \"punto_emision\": \"001\",\n  \"tipo_documento\": \"01\",\n  \"rango_inicial\": 1001,\n  \"rango_final\": 2000,\n  \"siguiente_correlativo\": 1001,\n  \"fecha_autorizacion\": \"2026-09-01\",\n  \"fecha_limite_emision\": \"2027-09-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar / desactivar autorización",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/autorizacion-facturas/{{authorization_id}}",
+            "description": "Desactiva/elimina lógicamente una autorización según la lógica del servicio. Requiere administrador."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "07 - Ventas y facturación",
+      "description": "Registro, consulta, anulación y PDF de ventas/facturas. Todas las rutas requieren autenticación. Registrar una venta modifica stock y correlativo, por lo que conviene probar con datos controlados.",
+      "item": [
+        {
+          "name": "Listar ventas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/ventas",
+            "description": "Lista ventas. El servicio admite filtros id_cliente, id_usuario, id_autorizacion, fecha_inicio y fecha_fin."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const list = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);",
+                  "    if (list.length > 0) {",
+                  "      const first = list[0];",
+                  "      const value = first['id_venta'] || first['id'];",
+                  "      if (value !== undefined && value !== null) pm.collectionVariables.set('sale_id', String(value));",
+                  "    }",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener venta por número de factura",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/ventas/numero/{{invoice_number}}",
+            "description": "Busca una venta utilizando su número de factura."
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener venta por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/ventas/{{sale_id}}",
+            "description": "Consulta una venta por ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar venta / emitir factura",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/ventas",
+            "description": "Registra una venta. Verifique previamente que client_id, user_id, authorization_id y product_id correspondan a registros existentes y que exista stock suficiente.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_cliente\": {{client_id}},\n  \"id_usuario\": {{user_id}},\n  \"id_autorizacion\": {{authorization_id}},\n  \"detalles\": [\n    {\n      \"id_producto\": {{product_id}},\n      \"cantidad\": 1,\n      \"descuento\": 0\n    }\n  ],\n  \"metodo_pago\": \"Efectivo\",\n  \"orden_compra_exenta\": \"\",\n  \"constancia_registro_exonerados\": \"\",\n  \"registro_sag\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const obj = data && data.data ? data.data : data;",
+                  "    const saleId = obj.id_venta || obj.id;",
+                  "    if (saleId !== undefined && saleId !== null) pm.collectionVariables.set('sale_id', String(saleId));",
+                  "    if (obj.numero_factura) pm.collectionVariables.set('invoice_number', String(obj.numero_factura));",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar ruta de PDF",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/ventas/{{sale_id}}/pdf",
+            "description": "Actualiza la ruta almacenada del PDF de la factura.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ruta_pdf_factura\": \"facturas/factura-prueba.pdf\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Anular factura",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{base_url}}/ventas/{{sale_id}}/anular",
+            "description": "Anula la factura indicada. Esta operación puede restaurar stock y no debe ejecutarse sobre una venta de producción salvo que realmente se desee anular."
+          },
+          "response": []
+        },
+        {
+          "name": "Descargar factura PDF",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/pdf",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/ventas/{{sale_id}}/pdf",
+            "description": "Devuelve el documento PDF generado para la venta. En Postman puede usarse Send and Download para guardarlo."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "08 - Detalles de venta",
+      "description": "Consultas de detalle de factura. Todas requieren autenticación.",
+      "item": [
+        {
+          "name": "Listar detalles por venta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/detalle-ventas/venta/{{sale_id}}",
+            "description": "Lista los detalles asociados a una venta."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const list = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);",
+                  "    if (list.length > 0) {",
+                  "      const first = list[0];",
+                  "      const value = first['id_detalle'] || first['id_detalle_venta'] || first['id'];",
+                  "      if (value !== undefined && value !== null) pm.collectionVariables.set('detail_id', String(value));",
+                  "    }",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar detalles por producto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/detalle-ventas/producto/{{product_id}}",
+            "description": "Lista detalles de venta asociados a un producto."
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener detalle por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/detalle-ventas/{{detail_id}}",
+            "description": "Consulta un detalle de venta por ID."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "09 - Movimientos de inventario",
+      "description": "Consultas de movimientos para usuarios autenticados. Crear un movimiento manual requiere rol admin.",
+      "item": [
+        {
+          "name": "Listar movimientos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/movimientos-inventario",
+            "description": "Lista movimientos de inventario."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const list = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);",
+                  "    if (list.length > 0) {",
+                  "      const first = list[0];",
+                  "      const value = first['id_movimiento'] || first['id'];",
+                  "      if (value !== undefined && value !== null) pm.collectionVariables.set('movement_id', String(value));",
+                  "    }",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar movimientos por producto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/movimientos-inventario/producto/{{product_id}}",
+            "description": "Lista movimientos correspondientes a un producto."
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener movimiento por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/movimientos-inventario/{{movement_id}}",
+            "description": "Consulta un movimiento por ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear movimiento de inventario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{base_url}}/movimientos-inventario",
+            "description": "Registra manualmente una entrada o salida. Requiere administrador y modifica el inventario.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_producto\": {{product_id}},\n  \"id_usuario\": {{user_id}},\n  \"tipo_movimiento\": \"entrada\",\n  \"cantidad\": 5,\n  \"motivo\": \"Ingreso de inventario desde Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    const obj = data && data.data ? data.data : data;",
+                  "    const value = obj['id_movimiento'] || obj['id'];",
+                  "    if (value !== undefined && value !== null) pm.collectionVariables.set('movement_id', String(value));",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
